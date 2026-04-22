@@ -412,7 +412,6 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
       </div>
       <button class="hbtn primary" onclick="openNewEvent()">+ Evt</button>
       <button class="hbtn" id="aiToggleBtn" onclick="toggleAI()">✦ IA</button>
-      <button class="hbtn" onclick="toggleDark()" id="darkBtn" title="Mode sombre">🌙</button>
       <span id="updateStatus">✓ Mise à jour appliquée</span>
       <span id="syncStatus">⟳ Sync...</span>
     </div>
@@ -521,22 +520,15 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
   <div class="modal" onclick="event.stopPropagation()" style="width:480px">
     <div class="modal-title">⚙ Profil de planification</div>
     <div class="profile-section">
-      <div class="profile-section-title">Apparence</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span style="font-size:13px">Mode sombre</span>
-        <button onclick="toggleDarkFromProfile()" id="darkToggleBtn" style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;background:var(--surface);color:var(--text)">🌙 Activer</button>
-      </div>
-      <div>
-        <div class="flbl">Couleur d'accentuation</div>
-        <div class="color-swatches" id="accentSwatches">
-          <div class="color-swatch" style="background:#0891b2" data-c="0891b2" onclick="setAccent('0891b2',this)" title="Cyan"></div>
-          <div class="color-swatch" style="background:#6366f1" data-c="6366f1" onclick="setAccent('6366f1',this)" title="Indigo"></div>
-          <div class="color-swatch" style="background:#8b5cf6" data-c="8b5cf6" onclick="setAccent('8b5cf6',this)" title="Violet"></div>
-          <div class="color-swatch" style="background:#ec4899" data-c="ec4899" onclick="setAccent('ec4899',this)" title="Rose"></div>
-          <div class="color-swatch" style="background:#f59e0b" data-c="f59e0b" onclick="setAccent('f59e0b',this)" title="Ambre"></div>
-          <div class="color-swatch" style="background:#10b981" data-c="10b981" onclick="setAccent('10b981',this)" title="Vert"></div>
-          <div class="color-swatch" style="background:#ef4444" data-c="ef4444" onclick="setAccent('ef4444',this)" title="Rouge"></div>
-        </div>
+      <div class="profile-section-title">Couleur d'accentuation</div>
+      <div class="color-swatches" id="accentSwatches">
+        <div class="color-swatch" style="background:#0891b2" data-c="0891b2" onclick="setAccent('0891b2',this)" title="Cyan"></div>
+        <div class="color-swatch" style="background:#6366f1" data-c="6366f1" onclick="setAccent('6366f1',this)" title="Indigo"></div>
+        <div class="color-swatch" style="background:#8b5cf6" data-c="8b5cf6" onclick="setAccent('8b5cf6',this)" title="Violet"></div>
+        <div class="color-swatch" style="background:#ec4899" data-c="ec4899" onclick="setAccent('ec4899',this)" title="Rose"></div>
+        <div class="color-swatch" style="background:#f59e0b" data-c="f59e0b" onclick="setAccent('f59e0b',this)" title="Ambre"></div>
+        <div class="color-swatch" style="background:#10b981" data-c="10b981" onclick="setAccent('10b981',this)" title="Vert"></div>
+        <div class="color-swatch" style="background:#ef4444" data-c="ef4444" onclick="setAccent('ef4444',this)" title="Rouge"></div>
       </div>
     </div>
     <div class="profile-section">
@@ -697,22 +689,18 @@ function saveWithSync(k,v){
 
 // ── Dark mode ─────────────────────────────────────────────────────────────────
 function applyDarkMode(val){
-  darkMode=val;
-  document.documentElement.setAttribute('data-theme',val?'dark':'light');
-  document.getElementById('darkBtn').textContent=val?'☀️':'🌙';
-  const btn=document.getElementById('darkToggleBtn');
-  if(btn)btn.textContent=val?'☀️ Désactiver':'🌙 Activer';
+  darkMode=false;
+  document.documentElement.setAttribute('data-theme','light');
 }
 function toggleDark(){
-  applyDarkMode(!darkMode);
-  profile.darkMode=darkMode;
+  applyDarkMode(false);
+  profile.darkMode=false;
   saveLS('arc-profile',profile);
 }
 function toggleDarkFromProfile(){
-  applyDarkMode(!darkMode);
-  profile.darkMode=darkMode;
-  const btn=document.getElementById('darkToggleBtn');
-  if(btn)btn.textContent=darkMode?'☀️ Désactiver':'🌙 Activer';
+  applyDarkMode(false);
+  profile.darkMode=false;
+  saveLS('arc-profile',profile);
 }
 
 // ── Accent color ──────────────────────────────────────────────────────────────
@@ -1137,8 +1125,6 @@ function openProfile(){
   document.getElementById('pLunchStart').value=profile.lunchStart||'12:30';
   document.getElementById('pLunchEnd').value=profile.lunchEnd||'13:30';
   document.getElementById('pApiKey').value=profile.apiKey||'';
-  const btn=document.getElementById('darkToggleBtn');
-  if(btn)btn.textContent=darkMode?'☀️ Désactiver':'🌙 Activer';
   document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.c===(profile.accentColor||'0891b2')));
   document.getElementById('profileOverlay').style.display='flex';
 }
@@ -1849,7 +1835,9 @@ function updateSyncStatus(state) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 mcViewDate=parseDate(selDate);mcViewDate.setDate(1);
 // Apply saved profile settings
-if(profile.darkMode)applyDarkMode(true);
+profile.darkMode=false;
+saveLS('arc-profile',profile);
+applyDarkMode(false);
 if(profile.accentColor)applyAccent(profile.accentColor);
 document.getElementById('sortPrio').classList.add('on');
 requestNotifPermission();
