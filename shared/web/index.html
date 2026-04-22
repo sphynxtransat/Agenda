@@ -218,26 +218,44 @@ radial-gradient(circle at left center, rgba(200,138,61,.1), transparent 36%);fle
 .ai-empty{padding:20px 12px;text-align:center;color:var(--text2);font-size:12.5px;line-height:1.6}
 .ai-empty-icon{font-size:24px;margin-bottom:7px}
 .ai-empty-title{font-weight:700;font-size:13px;color:var(--text);margin-bottom:5px}
+.premium-empty{padding:26px 16px;border:1px solid rgba(221,208,191,.65);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.84),rgba(250,243,233,.84));box-shadow:var(--shadow-md);text-align:left}
+.premium-empty .ai-empty-icon{font-size:28px;margin-bottom:10px}
+.premium-empty .ai-empty-title{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",serif;font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.premium-empty-copy{font-size:12.5px;line-height:1.7;color:var(--text2)}
+.premium-empty-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .ai-ctx{background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(251,245,237,.8));border:1px solid rgba(221,208,191,.72);border-radius:14px;padding:11px 12px;margin-top:10px;font-size:12px;color:var(--text2);box-shadow:var(--shadow-sm)}
 .ai-ctx-title{font-weight:700;color:var(--text);margin-bottom:4px}
 .ai-ctx-item{display:flex;align-items:center;gap:5px;margin-bottom:2px}
+.ai-pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ai-pill{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(255,255,255,.74);border:1px solid rgba(15,124,141,.16);color:var(--accent-strong);box-shadow:var(--shadow-sm)}
 .ai-sugg{background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(251,244,236,.84));border:1px solid rgba(221,208,191,.72);border-radius:16px;padding:10px 11px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:border-color .12s,background .12s,transform .12s,box-shadow .12s;box-shadow:var(--shadow-sm)}
 .ai-sugg:hover{border-color:rgba(15,124,141,.34);transform:translateY(-1px);box-shadow:var(--shadow-md)}
 .ai-sugg.sel{border-color:rgba(15,124,141,.34);background:linear-gradient(180deg,rgba(223,245,243,.92),rgba(247,231,207,.7))}
+.ai-sugg.featured{padding:13px 14px;border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(223,245,243,.68) 52%,rgba(247,231,207,.75));box-shadow:var(--shadow-md)}
 .ai-s-bar{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0}
 .ai-s-time{font-size:10px;color:var(--text2);margin-bottom:1px}
 .ai-s-title{font-size:12px;font-weight:700;line-height:1.3}
 .ai-s-note{font-size:11px;color:var(--text2);margin-top:1px;font-style:italic}
 .ai-s-ck{font-size:14px;flex-shrink:0}
+.ai-s-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.ai-s-kind{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid rgba(15,124,141,.12);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-strong)}
+.ai-s-badge{font-size:10px;color:var(--text3);font-weight:700}
+.ai-s-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.ai-s-meta .meta-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.64);font-size:10px;color:var(--text2);border:1px solid rgba(221,208,191,.55)}
 .ai-add-btn{width:100%;height:33px;background:rgba(15,124,141,.1);border:1px solid rgba(15,124,141,.24);border-radius:10px;color:var(--accent-strong);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px}
 .ai-add-btn:hover{background:rgba(15,124,141,.16)}
 .ai-sec{margin-bottom:12px}
 .ai-sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .ai-sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
 .ai-sec-note{font-size:10px;color:var(--text3)}
+.ai-chat-actions{margin-top:10px}
 .ai-decision{background:linear-gradient(135deg,rgba(223,245,243,.95),rgba(247,231,207,.82));border:1px solid rgba(15,124,141,.16);border-radius:18px;padding:13px 13px;margin-bottom:12px;box-shadow:var(--shadow-md)}
 .ai-decision-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--accent-strong);margin-bottom:5px}
 .ai-decision-body{font-size:13px;font-weight:700;line-height:1.45;color:var(--text)}
+.task-empty{padding:24px 12px;border:1px dashed rgba(221,208,191,.9);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.66),rgba(250,242,231,.72));text-align:center;color:var(--text2);box-shadow:var(--shadow-sm)}
+.task-empty-icon{font-size:24px;margin-bottom:8px}
+.task-empty-title{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+.task-empty-note{font-size:12px;line-height:1.6;margin-bottom:10px}
 /* Chat */
 .chat-messages{display:flex;flex-direction:column;gap:10px;padding:4px 0}
 .chat-msg{max-width:88%;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.55;word-break:break-word}
@@ -255,6 +273,7 @@ radial-gradient(circle at left center, rgba(200,138,61,.1), transparent 36%);fle
 /* Spinner */
 .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .loading-state{display:flex;flex-direction:column;align-items:center;padding:36px 16px;gap:12px;color:var(--text2);font-size:13px}
 .error-card{background:#fff5f5;border:1px solid #fcc;border-radius:8px;padding:12px;font-size:12.5px;color:#c0392b}
 /* Profile */
@@ -272,6 +291,7 @@ radial-gradient(circle at left center, rgba(200,138,61,.1), transparent 36%);fle
 #syncStatus{font-size:10px;color:var(--text3);white-space:nowrap;min-width:80px;text-align:right;flex-shrink:0}
 #updateStatus{font-size:10px;color:#059669;white-space:nowrap;min-width:110px;text-align:right;flex-shrink:0;opacity:0;transform:translateY(-2px);transition:opacity .25s,transform .25s}
 #updateStatus.show{opacity:1;transform:translateY(0)}
+.task-item,.ev-card,.ai-sugg,.chat-msg,.ai-decision,.premium-empty{animation:riseIn .28s ease-out}
 /* Mobile + perf */
 @media (hover:none) and (pointer:coarse){
   .ev-card:hover,.week-ev:hover,.task-del:hover,.ai-plan-btn:hover,.chat-send:hover,.mbtn:hover{transform:none;box-shadow:none;opacity:1}
@@ -780,7 +800,15 @@ function setTaskSort(by){
 function renderTasks(){
   const list=document.getElementById('taskList');list.innerHTML='';
   const sorted=getSortedTasks();
-  if(!sorted.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">Aucune tâche</div>';return;}
+  if(!sorted.length){
+    list.innerHTML=`<div class="task-empty">
+      <div class="task-empty-icon">✦</div>
+      <div class="task-empty-title">Espace léger</div>
+      <div class="task-empty-note">Aucune tâche pour l’instant. Ajoute une intention claire plutôt qu’une longue liste.</div>
+      <button class="mbtn p" style="height:30px;font-size:11px" onclick="showTaskForm()">Ajouter une tâche</button>
+    </div>`;
+    return;
+  }
   sorted.forEach(t=>{
     const cat=CATS[t.category]||CATS.personnel;
     const pClass={haute:'prio-haute',normale:'prio-normale',basse:'prio-basse'}[t.priority||'normale'];
@@ -1198,11 +1226,34 @@ function applyChatAction(msgIndex, actionIndex){
 function renderSuggestionCard(s, sel, onClick){
   const cat=CATS[s.category]||CATS.personnel;
   const isTask=s.type==='task';
-  const meta=isTask
-    ?`${cat.label} · ${s.priority||'normale'}${s.dueDate?` · à faire ${s.dueDate}`:''}`
-    :`${s.startTime} – ${s.endTime} · ${cat.label}`;
-  const title=isTask?`Tâche · ${s.title}`:s.title;
-  return `<div class="ai-sugg${sel?' sel':''}" ${onClick?`onclick="${onClick}"`:''}><div class="ai-s-bar" style="background:${cat.color}"></div><div style="flex:1"><div class="ai-s-time">${escapeHtml(meta)}</div><div class="ai-s-title">${escapeHtml(title)}</div>${s.note?`<div class="ai-s-note">${escapeHtml(s.note)}</div>`:''}${isTask&&s.subtasks?.length?`<div style="font-size:10px;color:var(--text3);margin-top:4px">${s.subtasks.length} sous-tâche(s)</div>`:''}</div><div class="ai-s-ck" style="color:${sel?'var(--accent)':'var(--border)'}">${sel?'✓':'○'}</div></div>`;
+  const metaChips=isTask
+    ?[
+      `<span class="meta-chip">${escapeHtml(cat.label)}</span>`,
+      `<span class="meta-chip">Priorité ${escapeHtml(s.priority||'normale')}</span>`,
+      s.dueDate?`<span class="meta-chip">À faire ${escapeHtml(s.dueDate)}</span>`:''
+    ].filter(Boolean).join('')
+    :[
+      `<span class="meta-chip">${escapeHtml(s.startTime)} – ${escapeHtml(s.endTime)}</span>`,
+      `<span class="meta-chip">${escapeHtml(cat.label)}</span>`,
+      s.date&&s.date!==selDate?`<span class="meta-chip">${escapeHtml(s.date)}</span>`:''
+    ].filter(Boolean).join('');
+  const kind=isTask?'To-do recommandée':'Créneau recommandé';
+  const kindIcon=isTask?'✓':'◌';
+  const title=s.title;
+  return `<div class="ai-sugg${sel?' sel':''}" ${onClick?`onclick="${onClick}"`:''}>
+    <div class="ai-s-bar" style="background:${cat.color}"></div>
+    <div style="flex:1">
+      <div class="ai-s-top">
+        <div class="ai-s-kind">${kindIcon} ${escapeHtml(kind)}</div>
+        <div class="ai-s-badge">${sel?'Sélectionné':'Cliquer pour choisir'}</div>
+      </div>
+      <div class="ai-s-meta">${metaChips}</div>
+      <div class="ai-s-title">${escapeHtml(title)}</div>
+      ${s.note?`<div class="ai-s-note">${escapeHtml(s.note)}</div>`:''}
+      ${isTask&&s.subtasks?.length?`<div style="font-size:10px;color:var(--text3);margin-top:6px">${s.subtasks.length} sous-tâche(s)</div>`:''}
+    </div>
+    <div class="ai-s-ck" style="color:${sel?'var(--accent)':'var(--border)'}">${sel?'✓':'○'}</div>
+  </div>`;
 }
 
 function suggestionBucket(s){
@@ -1217,7 +1268,13 @@ function suggestionBucket(s){
 
 function renderSuggestionSection(title,note,items,selectedMode){
   if(!items.length)return '';
-  return `<div class="ai-sec"><div class="ai-sec-head"><div class="ai-sec-title">${title}</div>${note?`<div class="ai-sec-note">${note}</div>`:''}</div>${items.map(item=>renderSuggestionCard(item.suggestion,selectedMode?aiSel.has(item.index):false,selectedMode?`toggleAISugg(${item.index})`:'' )).join('')}</div>`;
+  const [lead,...rest]=items;
+  const leadCard=lead?renderSuggestionCard(lead.suggestion,selectedMode?aiSel.has(lead.index):false,selectedMode?`toggleAISugg(${lead.index})`:'' ).replace('class="ai-sugg','class="ai-sugg featured'):'';
+  return `<div class="ai-sec">
+    <div class="ai-sec-head"><div class="ai-sec-title">${title}</div>${note?`<div class="ai-sec-note">${note}</div>`:''}</div>
+    ${leadCard}
+    ${rest.map(item=>renderSuggestionCard(item.suggestion,selectedMode?aiSel.has(item.index):false,selectedMode?`toggleAISugg(${item.index})`:'' )).join('')}
+  </div>`;
 }
 
 function getAssistantContext(){
@@ -1469,7 +1526,7 @@ function renderAI(){
           const nowItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='now');
           const planItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='plan');
           const laterItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='later');
-          actionsHtml=`<div style="margin-top:8px">
+          actionsHtml=`<div class="ai-chat-actions">
             ${renderSuggestionSection('À faire maintenant','action rapide',nowItems,false)}
             ${renderSuggestionSection('À planifier','à intégrer si utile',planItems,false)}
             ${renderSuggestionSection('À reporter','à garder mais sans urgence',laterItems,false)}
@@ -1481,7 +1538,15 @@ function renderAI(){
       if(chatLoading)html+=`<div class="chat-msg assistant thinking"><div class="spinner" style="width:16px;height:16px;margin:0"></div></div>`;
       html+=`</div>`;
     } else {
-      html=`<div class="ai-empty"><div class="ai-empty-icon">💬</div><div class="ai-empty-title">Assistant de journée</div><div>Demandez quoi faire maintenant, comment réorganiser votre journée, quelles priorités garder ou quoi reporter.</div></div>`;
+      html=`<div class="premium-empty">
+        <div class="ai-empty-icon">💬</div>
+        <div class="ai-empty-title">Assistant de journée</div>
+        <div class="premium-empty-copy">Demande une prochaine action, un arbitrage, un réagencement de journée ou un brief simple. L’assistant doit t’aider à décider vite, pas juste parler.</div>
+        <div class="premium-empty-actions">
+          <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Quelle est la prochaine meilleure action pour moi maintenant ?')">Action suivante</button>
+          <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Allège ma journée sans perdre l’essentiel.')">Alléger</button>
+        </div>
+      </div>`;
     }
     body.innerHTML=html;
     setTimeout(()=>{const b=document.getElementById('chatMessages');if(b)b.scrollTop=b.scrollHeight;},30);
@@ -1497,10 +1562,10 @@ function renderAI(){
       <button class="mbtn ${aiPlanMode==='catchup'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('catchup')">Rattraper</button>
       <button class="mbtn ${aiPlanMode==='clarify'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('clarify')">Clarifier</button>
     </div><button class="ai-plan-btn" onclick="planDay()">✦ Construire ma journée</button>`;
-    let html=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
-      <span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(8,145,178,.2)">${chronoLabel}</span>
-      <span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(8,145,178,.2)">⏱${p.maxBlock||90}min</span>
-      <span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(8,145,178,.2)">${energyLabel}</span>
+    let html=`<div class="ai-pill-row">
+      <span class="ai-pill">${chronoLabel}</span>
+      <span class="ai-pill">⏱${p.maxBlock||90}min</span>
+      <span class="ai-pill">${energyLabel}</span>
     </div>`;
     html+=`<div class="ai-ctx" style="margin-bottom:10px"><div class="ai-ctx-title">Ce que l'assistant va faire</div><div>Évaluer la capacité réelle du jour, protéger ton énergie, choisir peu mais bien, et décider quoi faire, quoi planifier et quoi reporter.</div></div>`;
     if(pending.length){
@@ -1508,6 +1573,15 @@ function renderAI(){
       pending.slice(0,5).forEach(t=>{const cat=CATS[t.category]||CATS.personnel;const pClass={haute:'prio-haute',normale:'prio-normale',basse:'prio-basse'}[t.priority||'normale'];html+=`<div class="ai-ctx-item"><span style="width:5px;height:5px;border-radius:50%;background:${cat.color};display:inline-block;flex-shrink:0"></span><span class="prio-badge ${pClass}" style="font-size:9px">${t.priority||'normale'}</span>${t.title}${t.dueDate?` <span style="color:var(--text3);font-size:10px">📅${t.dueDate}</span>`:''}</div>`;});
       if(pending.length>5)html+=`<div style="font-size:11px;color:var(--text3);margin-top:3px">+${pending.length-5} autres…</div>`;
       html+=`</div>`;
+    } else {
+      html+=`<div class="premium-empty">
+        <div class="ai-empty-icon">✦</div>
+        <div class="ai-empty-title">Une journée à façonner</div>
+        <div class="premium-empty-copy">Le mode Planifier est plus fort quand il a quelques intentions à arbitrer. Ajoute 2 ou 3 tâches importantes, puis laisse l’assistant construire une journée réaliste.</div>
+        <div class="premium-empty-actions">
+          <button class="mbtn p" style="height:30px;font-size:11px" onclick="showTaskForm()">Ajouter une tâche</button>
+        </div>
+      </div>`;
     }
     body.innerHTML=html;
   } else if(aiStep==='loading'){
@@ -1529,7 +1603,7 @@ function renderAI(){
     const nowItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='now');
     const planItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='plan');
     const laterItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='later');
-    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">${aiSuggs.length} proposition${aiSuggs.length>1?'s':''} · Sélectionnez celles qui te conviennent</div>`;
+    html+=`<div class="ai-ctx" style="margin-bottom:12px"><div class="ai-ctx-title">Sélection</div><div>${aiSuggs.length} proposition${aiSuggs.length>1?'s':''}. Garde seulement celles qui allègent vraiment ta journée ou renforcent ton cap.</div></div>`;
     html+=renderSuggestionSection('À faire maintenant','protège l’élan',nowItems,true);
     html+=renderSuggestionSection('À planifier','créneaux et to-do utiles',planItems,true);
     html+=renderSuggestionSection('À reporter','à garder pour plus tard',laterItems,true);
