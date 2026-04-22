@@ -200,6 +200,21 @@ overflow:hidden;transition:width .25s,opacity .2s;position:relative;backdrop-fil
 .ai-inner{display:flex;flex-direction:column;height:100%;overflow:hidden}
 .ai-hd{padding:16px 16px 12px;border-bottom:1px solid rgba(221,208,191,.56);background:
 linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0;backdrop-filter:blur(18px)}
+[data-platform="mac"] .main-hd,
+[data-platform="mac"] .sb-head,
+[data-platform="mac"] .ai-hd{cursor:grab}
+[data-platform="mac"] .main-hd button,
+[data-platform="mac"] .sb-head button,
+[data-platform="mac"] .ai-hd button,
+[data-platform="mac"] .main-hd input,
+[data-platform="mac"] .sb-head input,
+[data-platform="mac"] .ai-hd input,
+[data-platform="mac"] .main-hd textarea,
+[data-platform="mac"] .sb-head textarea,
+[data-platform="mac"] .ai-hd textarea,
+[data-platform="mac"] .main-hd select,
+[data-platform="mac"] .sb-head select,
+[data-platform="mac"] .ai-hd select{cursor:auto}
 [data-theme="dark"] .ai-hd{background:linear-gradient(135deg,#17302f,#1d1815)}
 .ai-hd-top{display:flex;align-items:flex-start;justify-content:space-between}
 .ai-hd-title{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",serif;font-size:21px;font-weight:700;letter-spacing:-.02em}

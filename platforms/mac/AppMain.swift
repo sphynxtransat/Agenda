@@ -72,12 +72,24 @@ class APIHandler: NSObject, WKScriptMessageHandler {
     }
 }
 
+class WindowDragHandler: NSObject, WKScriptMessageHandler {
+    weak var window: NSWindow?
+
+    func userContentController(_ c: WKUserContentController, didReceive msg: WKScriptMessage) {
+        guard let event = NSApp.currentEvent else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.window?.performDrag(with: event)
+        }
+    }
+}
+
 // ─── Application ──────────────────────────────────────────────────────────────
 class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate {
     var window: NSWindow!
     var webView: WKWebView!
     let server = LocalServer()
     let apiHandler = APIHandler()
+    let windowDragHandler = WindowDragHandler()
     let remoteAppURL = URL(string: "https://agenda-c6346.web.app/index.html")!
     let localAppURL  = URL(string: "http://localhost:19432/index.html")!
     var didFallbackToLocal = false
@@ -118,6 +130,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDe
 
         // API bridge — remplace fetch() pour éviter CORS
         config.userContentController.add(apiHandler, name: "nativeAPI")
+        config.userContentController.add(windowDragHandler, name: "windowDrag")
         config.userContentController.addUserScript(WKUserScript(source: """
             window._apiCallbacks = {};
             window._apiCallback = function(callId, result, err) {
@@ -143,6 +156,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDe
         config.userContentController.addUserScript(WKUserScript(source: """
             document.documentElement.setAttribute('data-platform', 'mac');
         """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        config.userContentController.addUserScript(WKUserScript(source: """
+            document.addEventListener('mousedown', function(event) {
+                if (event.button !== 0) return;
+                var zone = event.target.closest('.main-hd, .sb-head, .ai-hd');
+                if (!zone) return;
+                if (event.target.closest('button, input, textarea, select, a, label')) return;
+                window.webkit.messageHandlers.windowDrag.postMessage('drag');
+            }, true);
+        """, injectionTime: .atDocumentEnd, forMainFrameOnly: false))
 
         window = NSWindow(
             contentRect: NSRect(x:0,y:0,width:1400,height:920),
@@ -160,6 +182,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDe
         webView.navigationDelegate = self; webView.uiDelegate = self
         window.contentView!.addSubview(webView)
         apiHandler.webView = webView
+        windowDragHandler.window = window
 
         loadPreferredApp()
         window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
