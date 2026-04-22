@@ -1,0 +1,5 @@
+.firebase/
+.DS_Store
+*.log
+*.tmp
+*.swp
