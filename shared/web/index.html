@@ -224,6 +224,12 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
 .ai-tab.on{background:rgba(255,255,255,.94);color:var(--text);font-weight:700;box-shadow:0 3px 8px rgba(58,39,18,.035)}
 .ai-body{flex:1;overflow-y:auto;padding:14px}
 .ai-ft{padding:12px 14px;border-top:1px solid rgba(221,208,191,.56);flex-shrink:0;background:rgba(245,240,233,.8)}
+.ai-ft.compact{display:flex;flex-direction:column;gap:8px}
+.ai-ft-hint{font-size:11px;line-height:1.45;color:var(--text3)}
+.ai-ft-row{display:flex;gap:8px;align-items:center}
+.ai-mode-chip{min-width:108px;height:34px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.9);font-family:inherit;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
+.ai-mode-chip:hover{border-color:rgba(15,124,141,.22);transform:translateY(-1px)}
+.ai-mode-chip span{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .ai-plan-btn{width:100%;height:40px;background:linear-gradient(180deg,var(--accent),var(--accent-strong));color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .12s,transform .12s;box-shadow:0 18px 32px rgba(15,124,141,.18)}
 .ai-plan-btn:hover{opacity:.88}
 .profile-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.7);border:1px solid rgba(15,124,141,.14);color:var(--accent-strong);border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .1s}
@@ -261,6 +267,8 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
 .ai-sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .ai-sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
 .ai-sec-note{font-size:10px;color:var(--text3)}
+.ai-sec.compact .ai-sec-head{margin-bottom:4px}
+.ai-sec.compact .ai-sec-note{max-width:140px;text-align:right}
 .ai-chat-actions{margin-top:10px}
 .ai-decision{background:linear-gradient(135deg,rgba(227,240,238,.82),rgba(242,236,227,.66));border:1px solid rgba(78,141,138,.1);border-radius:18px;padding:13px 13px;margin-bottom:12px;box-shadow:0 7px 14px rgba(54,41,27,.045)}
 .ai-decision-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--accent-strong);margin-bottom:5px}
@@ -1166,6 +1174,42 @@ function setPlanMode(mode){
   renderAI();
 }
 
+const planModeOrder=['advance','hold','recover','catchup','clarify'];
+const planModeLabels={
+  advance:'Avancer',
+  hold:'Tenir',
+  recover:'Récupérer',
+  catchup:'Rattraper',
+  clarify:'Clarifier'
+};
+
+function cyclePlanMode(){
+  const idx=planModeOrder.indexOf(aiPlanMode);
+  const next=planModeOrder[(idx+1)%planModeOrder.length]||'advance';
+  setPlanMode(next);
+}
+
+function renderCompactActionSections(msgIndex, items){
+  const wrapped=items.map((suggestion,index)=>({suggestion,index}));
+  const nowItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='now');
+  const planItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='plan');
+  const laterItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='later');
+  return [
+    renderActionSection('À faire maintenant','le plus utile tout de suite',nowItems,msgIndex),
+    renderActionSection('À planifier','à garder si cela compte',planItems,msgIndex),
+    renderActionSection('À reporter','sans urgence aujourd’hui',laterItems,msgIndex)
+  ].filter(Boolean).join('');
+}
+
+function renderActionSection(title,note,items,msgIndex){
+  if(!items.length)return '';
+  const [lead,...rest]=items;
+  return `<div class="ai-sec compact">
+    <div class="ai-sec-head"><div class="ai-sec-title">${title}</div>${note?`<div class="ai-sec-note">${note}</div>`:''}</div>
+    ${[lead,...rest].map(item=>renderSuggestionCard(item.suggestion,false,`applyChatAction(${msgIndex},${item.index})`,'Cliquer pour ajouter')).join('')}
+  </div>`;
+}
+
 function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g,ch=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
 }
@@ -1245,7 +1289,7 @@ function applyChatAction(msgIndex, actionIndex){
   renderAI();
 }
 
-function renderSuggestionCard(s, sel, onClick){
+function renderSuggestionCard(s, sel, onClick, badgeText){
   const cat=CATS[s.category]||CATS.personnel;
   const isTask=s.type==='task';
   const metaChips=isTask
@@ -1267,7 +1311,7 @@ function renderSuggestionCard(s, sel, onClick){
     <div style="flex:1">
       <div class="ai-s-top">
         <div class="ai-s-kind">${kindIcon} ${escapeHtml(kind)}</div>
-        <div class="ai-s-badge">${sel?'Sélectionné':'Cliquer pour choisir'}</div>
+        <div class="ai-s-badge">${sel?'Sélectionné':(badgeText||'Cliquer pour choisir')}</div>
       </div>
       <div class="ai-s-meta">${metaChips}</div>
       <div class="ai-s-title">${escapeHtml(title)}</div>
@@ -1529,11 +1573,8 @@ function renderAI(){
 
   if(aiTab==='chat'){
     // Chat interface
-    footer.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Quelle est la prochaine meilleure action pour moi maintenant ?')">Que faire maintenant ?</button>
-      <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Réorganise ma journée de façon réaliste avec ce que tu vois dans mon agenda.')">Réorganise ma journée</button>
-      <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Fais-moi un brief de matinée en 5 lignes maximum.')">Brief du matin</button>
-    </div><div class="chat-input-row">
+    footer.innerHTML=`<div class="ai-ft-hint">Une question courte suffit. Le reste doit rester en suggestion, pas en boutons.</div>
+    <div class="chat-input-row">
       <textarea class="chat-input" id="chatInput" placeholder="Posez une question sur votre journée…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
       <button class="chat-send" onclick="sendChatMessage()" ${chatLoading?'disabled':''}>➤</button>
     </div>`;
@@ -1544,15 +1585,9 @@ function renderAI(){
       chatHistory.forEach((m,msgIndex)=>{
         let actionsHtml='';
         if(m.actions?.length){
-          const wrapped=m.actions.map((a,actionIndex)=>({suggestion:a,index:actionIndex}));
-          const nowItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='now');
-          const planItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='plan');
-          const laterItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='later');
           actionsHtml=`<div class="ai-chat-actions">
-            ${renderSuggestionSection('À faire maintenant','action rapide',nowItems,false)}
-            ${renderSuggestionSection('À planifier','à intégrer si utile',planItems,false)}
-            ${renderSuggestionSection('À reporter','à garder mais sans urgence',laterItems,false)}
-            ${wrapped.map(({suggestion,index})=>`<button class="ai-add-btn" style="margin-top:6px;height:28px" onclick="event.stopPropagation();applyChatAction(${msgIndex},${index})">Ajouter ${escapeHtml(suggestion.type==='task'?'à la to-do':'à l’agenda')} · ${escapeHtml(suggestion.title)}</button>`).join('')}
+            <div class="ai-ft-hint" style="margin:8px 0 6px">Touchez une suggestion pour l’ajouter directement.</div>
+            ${renderCompactActionSections(msgIndex,m.actions)}
           </div>`;
         }
         html+=`<div class="chat-msg ${m.role}${m.content.startsWith('⚠')?'':''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}${actionsHtml}</div>`;
@@ -1566,7 +1601,6 @@ function renderAI(){
         <div class="premium-empty-copy">Demande une prochaine action, un arbitrage, un réagencement de journée ou un brief simple. L’assistant doit t’aider à décider vite, pas juste parler.</div>
         <div class="premium-empty-actions">
           <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Quelle est la prochaine meilleure action pour moi maintenant ?')">Action suivante</button>
-          <button class="mbtn" style="height:28px;font-size:11px" onclick="sendQuickChatMessage('Allège ma journée sans perdre l’essentiel.')">Alléger</button>
         </div>
       </div>`;
     }
@@ -1577,13 +1611,11 @@ function renderAI(){
 
   // Plan tab
   if(aiStep==='idle'){
-    footer.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <button class="mbtn ${aiPlanMode==='advance'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('advance')">Avancer</button>
-      <button class="mbtn ${aiPlanMode==='hold'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('hold')">Tenir</button>
-      <button class="mbtn ${aiPlanMode==='recover'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('recover')">Récupérer</button>
-      <button class="mbtn ${aiPlanMode==='catchup'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('catchup')">Rattraper</button>
-      <button class="mbtn ${aiPlanMode==='clarify'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('clarify')">Clarifier</button>
-    </div><button class="ai-plan-btn" onclick="planDay()">✦ Construire ma journée</button>`;
+    footer.innerHTML=`<div class="ai-ft-row">
+      <button class="ai-mode-chip" onclick="cyclePlanMode()"><span>Mode</span>${escapeHtml(planModeLabels[aiPlanMode]||'Avancer')}</button>
+      <button class="ai-plan-btn" style="flex:1;width:auto" onclick="planDay()">✦ Construire ma journée</button>
+    </div>
+    <div class="ai-ft-hint">Un seul mode à la fois. Le reste se règle dans le plan généré.</div>`;
     let html=`<div class="ai-pill-row">
       <span class="ai-pill">${chronoLabel}</span>
       <span class="ai-pill">⏱${p.maxBlock||90}min</span>
