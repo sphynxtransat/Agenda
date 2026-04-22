@@ -546,7 +546,7 @@ let aiErr = '';
 let aiSuggs = [];
 let aiSel = new Set();
 let aiPlanMeta = null;
-let aiPlanMode = 'balanced';
+let aiPlanMode = 'advance';
 let chatHistory = loadLS('arc-chat', []);
 let chatLoading = false;
 let editingEventId = null;
@@ -1221,29 +1221,34 @@ function getAssistantContext(){
     energyStr:energyMap[p.energy||'medium'],
     dayContextStr:ctxMap[p.dayContext||'normal'],
     workWindow:`${p.workStart||'08:00'} → ${p.workEnd||'19:00'}`,
-    lunchWindow:`${p.lunchStart||'12:30'} → ${p.lunchEnd||'13:30'}`
+    lunchWindow:`${p.lunchStart||'12:30'} → ${p.lunchEnd||'13:30'}`,
+    loadBudget:{low:'60%',medium:'70%',high:'80%'}[p.energy||'medium']
   };
 }
 
 function buildPrompt(){
-  const {p,existStr,taskStr,chronoStr,energyStr,dayContextStr,workWindow,lunchWindow}=getAssistantContext();
+  const {p,existStr,taskStr,chronoStr,energyStr,dayContextStr,workWindow,lunchWindow,loadBudget}=getAssistantContext();
   const modeDesc={
-    balanced:'équilibre réaliste entre avancement, énergie et respiration',
-    focus:'protéger 1 à 2 blocs de concentration forte et réduire le contexte',
-    light:'journée légère, soutenable, avec peu d\'engagements et plus de marge'
-  }[aiPlanMode]||'équilibre réaliste';
+    advance:'faire progresser l’essentiel sans surcharger la journée',
+    hold:'tenir une journée dense de façon stable et soutenable',
+    recover:'protéger l’énergie et alléger fortement la journée',
+    catchup:'rattraper le retard sans créer d’effondrement ensuite',
+    clarify:'réduire le flou et dégager une seule direction claire'
+  }[aiPlanMode]||'faire progresser l’essentiel sans surcharger la journée';
 
-  return `Tu es un assistant exécutif personnel, chaleureux, concret et ultra-pratique.
-Tu aides à construire une journée réaliste qui allège la charge mentale, protège l'énergie et fait avancer les vraies priorités.
+  return `Tu es un assistant de régulation humaine de la journée.
+Tu n’optimises pas un agenda abstrait : tu aides un être humain avec une énergie variable, une attention limitée et une capacité réelle plus faible que sa capacité théorique.
+Tu dois être concret, protecteur, lucide et soutenable.
 
 ═══ PROFIL BIOLOGIQUE ═══
 • Chronotype : ${chronoStr}
 • Fenêtre de deep work préférentielle : ${p.deepWork==='morning'?'matin uniquement':p.deepWork==='afternoon'?'après-midi uniquement':'matin + après-midi'}
-• Durée max par bloc de concentration : ${p.maxBlock||90} minutes (rythme ultradian)
-• Buffer recommandé entre tâches : ${p.buffer||15} minutes (récupération attention)
+• Durée max par bloc de concentration : ${p.maxBlock||90} minutes
+• Buffer recommandé entre tâches : ${p.buffer||15} minutes
 • Niveau d'énergie du jour : ${energyStr}
 • Contexte du jour : ${dayContextStr}
 • Style demandé : ${modeDesc}
+• Charge visée de la journée : environ ${loadBudget} de la capacité perçue
 
 ═══ HORAIRES ═══
 • Journée de travail : ${workWindow}
@@ -1256,13 +1261,16 @@ Tu aides à construire une journée réaliste qui allège la charge mentale, pro
   ${taskStr}
 
 ═══ CONSIGNES ═══
-1. Fais un plan réaliste, pas un planning parfait.
-2. Choisis au maximum 3 priorités fortes pour la journée.
-3. Respecte les événements déjà fixés, les pauses et le déjeuner.
-4. Évite de surcharger : laisse de la marge si la journée est dense.
-5. Regroupe les tâches proches pour réduire le coût de changement de contexte.
-6. Si toutes les tâches ne rentrent pas, reporte explicitement les moins importantes.
-7. Donne des formulations utiles pour un humain fatigué : simples, concrètes, actionnables.
+1. Ne remplis jamais toute la journée. Laisse de la marge et protège des temps de respiration.
+2. Planifie selon la capacité réelle d’un humain, pas selon une journée idéale.
+3. Choisis au maximum 1 à 3 priorités fortes.
+4. Une bonne décision peut être de reporter, raccourcir ou supprimer une tâche.
+5. Si une tâche est trop coûteuse, propose une version plus petite ou un premier pas.
+6. Évite les changements de contexte inutiles.
+7. Les tâches exigeantes vont dans les meilleurs créneaux, jamais partout.
+8. Si l’énergie est basse ou la journée dense, allège franchement au lieu de compresser.
+9. Les formulations doivent être simples, humaines, rassurantes et actionnables.
+10. Aide à finir la journée en meilleur état, pas juste avec plus de cases remplies.
 
 ═══ FORMAT DE RÉPONSE ═══
 Réponds UNIQUEMENT avec un objet JSON valide, rien d'autre :
@@ -1456,16 +1464,18 @@ function renderAI(){
   // Plan tab
   if(aiStep==='idle'){
     footer.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <button class="mbtn ${aiPlanMode==='balanced'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('balanced')">Équilibré</button>
-      <button class="mbtn ${aiPlanMode==='focus'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('focus')">Focus</button>
-      <button class="mbtn ${aiPlanMode==='light'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('light')">Léger</button>
+      <button class="mbtn ${aiPlanMode==='advance'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('advance')">Avancer</button>
+      <button class="mbtn ${aiPlanMode==='hold'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('hold')">Tenir</button>
+      <button class="mbtn ${aiPlanMode==='recover'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('recover')">Récupérer</button>
+      <button class="mbtn ${aiPlanMode==='catchup'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('catchup')">Rattraper</button>
+      <button class="mbtn ${aiPlanMode==='clarify'?'p':''}" style="height:28px;font-size:11px" onclick="setPlanMode('clarify')">Clarifier</button>
     </div><button class="ai-plan-btn" onclick="planDay()">✦ Construire ma journée</button>`;
     let html=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
       <span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(8,145,178,.2)">${chronoLabel}</span>
       <span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(8,145,178,.2)">⏱${p.maxBlock||90}min</span>
       <span style="padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(8,145,178,.2)">${energyLabel}</span>
     </div>`;
-    html+=`<div class="ai-ctx" style="margin-bottom:10px"><div class="ai-ctx-title">Ce que l'assistant va faire</div><div>Choisir les vraies priorités, placer des créneaux réalistes, garder du buffer et signaler ce qu'il vaut mieux repousser.</div></div>`;
+    html+=`<div class="ai-ctx" style="margin-bottom:10px"><div class="ai-ctx-title">Ce que l'assistant va faire</div><div>Évaluer la capacité réelle du jour, protéger ton énergie, choisir peu mais bien, et décider quoi faire, quoi planifier et quoi reporter.</div></div>`;
     if(pending.length){
       html+=`<div class="ai-ctx"><div class="ai-ctx-title">${pending.length} tâche${pending.length>1?'s':''} en attente</div>`;
       pending.slice(0,5).forEach(t=>{const cat=CATS[t.category]||CATS.personnel;const pClass={haute:'prio-haute',normale:'prio-normale',basse:'prio-basse'}[t.priority||'normale'];html+=`<div class="ai-ctx-item"><span style="width:5px;height:5px;border-radius:50%;background:${cat.color};display:inline-block;flex-shrink:0"></span><span class="prio-badge ${pClass}" style="font-size:9px">${t.priority||'normale'}</span>${t.title}${t.dueDate?` <span style="color:var(--text3);font-size:10px">📅${t.dueDate}</span>`:''}</div>`;});
