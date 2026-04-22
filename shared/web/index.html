@@ -204,6 +204,13 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Ne
 .ai-s-ck{font-size:14px;flex-shrink:0}
 .ai-add-btn{width:100%;height:31px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.3);border-radius:6px;color:rgba(4,120,87,1);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px}
 .ai-add-btn:hover{background:rgba(5,150,105,.18)}
+.ai-sec{margin-bottom:12px}
+.ai-sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ai-sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.ai-sec-note{font-size:10px;color:var(--text3)}
+.ai-decision{background:linear-gradient(135deg,var(--accent-bg),rgba(255,255,255,.55));border:1px solid rgba(8,145,178,.2);border-radius:10px;padding:10px 11px;margin-bottom:10px}
+.ai-decision-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:4px}
+.ai-decision-body{font-size:13px;font-weight:600;line-height:1.45;color:var(--text)}
 /* Chat */
 .chat-messages{display:flex;flex-direction:column;gap:10px;padding:4px 0}
 .chat-msg{max-width:88%;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.55;word-break:break-word}
@@ -1168,6 +1175,21 @@ function renderSuggestionCard(s, sel, onClick){
   return `<div class="ai-sugg${sel?' sel':''}" ${onClick?`onclick="${onClick}"`:''}><div class="ai-s-bar" style="background:${cat.color}"></div><div style="flex:1"><div class="ai-s-time">${escapeHtml(meta)}</div><div class="ai-s-title">${escapeHtml(title)}</div>${s.note?`<div class="ai-s-note">${escapeHtml(s.note)}</div>`:''}${isTask&&s.subtasks?.length?`<div style="font-size:10px;color:var(--text3);margin-top:4px">${s.subtasks.length} sous-tâche(s)</div>`:''}</div><div class="ai-s-ck" style="color:${sel?'var(--accent)':'var(--border)'}">${sel?'✓':'○'}</div></div>`;
 }
 
+function suggestionBucket(s){
+  const note=(s.note||'').toLowerCase();
+  const title=(s.title||'').toLowerCase();
+  if(note.includes('report')||note.includes('plus tard')||title.includes('report'))return 'later';
+  if(s.type==='task')return 'plan';
+  const nowStart=nowMins();
+  if(s.type==='event' && s.date===selDate && Math.abs(toMins(s.startTime)-nowStart)<=120)return 'now';
+  return 'plan';
+}
+
+function renderSuggestionSection(title,note,items,selectedMode){
+  if(!items.length)return '';
+  return `<div class="ai-sec"><div class="ai-sec-head"><div class="ai-sec-title">${title}</div>${note?`<div class="ai-sec-note">${note}</div>`:''}</div>${items.map(item=>renderSuggestionCard(item.suggestion,selectedMode?aiSel.has(item.index):false,selectedMode?`toggleAISugg(${item.index})`:'' )).join('')}</div>`;
+}
+
 function getAssistantContext(){
   const dayEvs=getEventsForDate(selDate).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const pending=tasks.filter(t=>!t.done);
@@ -1403,7 +1425,20 @@ function renderAI(){
       html+=`<span class="chat-clear" onclick="clearChat()">Effacer l'historique</span>`;
       html+=`<div class="chat-messages" id="chatMessages">`;
       chatHistory.forEach((m,msgIndex)=>{
-        html+=`<div class="chat-msg ${m.role}${m.content.startsWith('⚠')?'':''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}${m.actions?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">${m.actions.map((a,actionIndex)=>`<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px"><div style="font-size:11px;font-weight:700;margin-bottom:4px">${a.type==='task'?'Suggestion to-do':'Suggestion agenda'}</div>${renderSuggestionCard(a,false,'') }<button class="ai-add-btn" style="margin-top:8px;height:28px" onclick="event.stopPropagation();applyChatAction(${msgIndex},${actionIndex})">Ajouter</button></div>`).join('')}</div>`:''}</div>`;
+        let actionsHtml='';
+        if(m.actions?.length){
+          const wrapped=m.actions.map((a,actionIndex)=>({suggestion:a,index:actionIndex}));
+          const nowItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='now');
+          const planItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='plan');
+          const laterItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='later');
+          actionsHtml=`<div style="margin-top:8px">
+            ${renderSuggestionSection('À faire maintenant','action rapide',nowItems,false)}
+            ${renderSuggestionSection('À planifier','à intégrer si utile',planItems,false)}
+            ${renderSuggestionSection('À reporter','à garder mais sans urgence',laterItems,false)}
+            ${wrapped.map(({suggestion,index})=>`<button class="ai-add-btn" style="margin-top:6px;height:28px" onclick="event.stopPropagation();applyChatAction(${msgIndex},${index})">Ajouter ${escapeHtml(suggestion.type==='task'?'à la to-do':'à l’agenda')} · ${escapeHtml(suggestion.title)}</button>`).join('')}
+          </div>`;
+        }
+        html+=`<div class="chat-msg ${m.role}${m.content.startsWith('⚠')?'':''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}${actionsHtml}</div>`;
       });
       if(chatLoading)html+=`<div class="chat-msg assistant thinking"><div class="spinner" style="width:16px;height:16px;margin:0"></div></div>`;
       html+=`</div>`;
@@ -1445,13 +1480,19 @@ function renderAI(){
     footer.innerHTML='';
     let html='';
     if(aiPlanMeta){
-      html+=`<div class="ai-ctx" style="margin-bottom:10px"><div class="ai-ctx-title">${escapeHtml(aiPlanMeta.summary)}</div>`;
+      html+=`<div class="ai-decision"><div class="ai-decision-title">Décision recommandée</div><div class="ai-decision-body">${escapeHtml(aiPlanMeta.summary)}</div></div><div class="ai-ctx" style="margin-bottom:10px"><div class="ai-ctx-title">Repères du jour</div>`;
       if(aiPlanMeta.top3?.length)html+=`<div style="font-size:11px;color:var(--text2);margin:6px 0 4px">Top priorités</div>${aiPlanMeta.top3.map(t=>`<div class="ai-ctx-item">• ${escapeHtml(t)}</div>`).join('')}`;
       if(aiPlanMeta.watchouts?.length)html+=`<div style="font-size:11px;color:var(--text2);margin:8px 0 4px">Vigilance</div>${aiPlanMeta.watchouts.map(t=>`<div class="ai-ctx-item">• ${escapeHtml(t)}</div>`).join('')}`;
       html+=`</div>`;
     }
-    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">${aiSuggs.length} proposition${aiSuggs.length>1?'s':''} · Sélectionnez celles à ajouter</div>`;
-    aiSuggs.forEach((s,i)=>{html+=renderSuggestionCard(s,aiSel.has(i),`toggleAISugg(${i})`);});
+    const wrapped=aiSuggs.map((suggestion,index)=>({suggestion,index}));
+    const nowItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='now');
+    const planItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='plan');
+    const laterItems=wrapped.filter(x=>suggestionBucket(x.suggestion)==='later');
+    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">${aiSuggs.length} proposition${aiSuggs.length>1?'s':''} · Sélectionnez celles qui te conviennent</div>`;
+    html+=renderSuggestionSection('À faire maintenant','protège l’élan',nowItems,true);
+    html+=renderSuggestionSection('À planifier','créneaux et to-do utiles',planItems,true);
+    html+=renderSuggestionSection('À reporter','à garder pour plus tard',laterItems,true);
     if(aiSel.size>0)html+=`<button class="ai-add-btn" onclick="addAISuggs()">Ajouter ${aiSel.size} élément${aiSel.size>1?'s':''} à l'agenda / to-do</button>`;
     html+=`<div style="text-align:center;margin-top:8px"><button class="mbtn" style="font-size:11px;height:28px" onclick="resetAI()">↩ Recommencer</button></div>`;
     body.innerHTML=html;
