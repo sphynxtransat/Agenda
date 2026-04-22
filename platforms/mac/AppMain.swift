@@ -140,13 +140,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDe
                 });
             };
         """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
+        config.userContentController.addUserScript(WKUserScript(source: """
+            document.documentElement.setAttribute('data-platform', 'mac');
+        """, injectionTime: .atDocumentStart, forMainFrameOnly: false))
 
         window = NSWindow(
             contentRect: NSRect(x:0,y:0,width:1400,height:920),
-            styleMask: [.titled,.closable,.miniaturizable,.resizable],
+            styleMask: [.titled,.closable,.miniaturizable,.resizable,.fullSizeContentView],
             backing: .buffered, defer: false)
         window.title = "Agenda"; window.setFrameAutosaveName("AgendaMainWindow")
         window.minSize = NSSize(width:860,height:600); window.center()
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.toolbarStyle = .unifiedCompact
+        window.isMovableByWindowBackground = true
 
         webView = WKWebView(frame: window.contentView!.bounds, configuration: config)
         webView.autoresizingMask = [.width,.height]
