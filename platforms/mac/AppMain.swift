@@ -146,14 +146,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDe
 
         window = NSWindow(
             contentRect: NSRect(x:0,y:0,width:1400,height:920),
-            styleMask: [.titled,.closable,.miniaturizable,.resizable,.fullSizeContentView],
+            styleMask: [.titled,.closable,.miniaturizable,.resizable],
             backing: .buffered, defer: false)
         window.title = "Agenda"; window.setFrameAutosaveName("AgendaMainWindow")
         window.minSize = NSSize(width:860,height:600); window.center()
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
-        window.toolbarStyle = .unifiedCompact
-        window.isMovableByWindowBackground = true
+        window.titlebarAppearsTransparent = false
+        window.titleVisibility = .visible
+        window.toolbarStyle = .automatic
+        window.isMovableByWindowBackground = false
 
         webView = WKWebView(frame: window.contentView!.bounds, configuration: config)
         webView.autoresizingMask = [.width,.height]
