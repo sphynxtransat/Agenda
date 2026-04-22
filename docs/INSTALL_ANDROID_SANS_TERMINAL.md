@@ -29,7 +29,7 @@ Pourquoi :
 5. Deployer :
 
 ```bash
-cd chemin/racine/projet_partagé
+cd AGENDA/chemin/racine/projet_partagé
 chmod +x scripts/deploy_firebase.command
 ./scripts/deploy_firebase.command
 ```

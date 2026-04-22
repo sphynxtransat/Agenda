@@ -63,7 +63,7 @@ Voir : `docs/GITHUB_AUTODEPLOY.md`
 Pour propager automatiquement les changements faits ici :
 
 ```bash
-cd "/Users/Arcangelo/Desktop/AI/Création APP/VSC/chemin/racine/projet_partagé"
+cd "/Users/Arcangelo/Desktop/AI/Création APP/VSC/AGENDA/chemin/racine/projet_partagé"
 chmod +x scripts/sync_shared.command scripts/watch_updates.command scripts/deploy_firebase.command
 ./scripts/watch_updates.command
 ```
