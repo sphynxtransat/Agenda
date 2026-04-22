@@ -30,8 +30,8 @@ Pourquoi :
 
 ```bash
 cd chemin/racine/projet_partagé
-chmod +x deploy_firebase.command
-./deploy_firebase.command
+chmod +x scripts/deploy_firebase.command
+./scripts/deploy_firebase.command
 ```
 
 ## Notes de synchro

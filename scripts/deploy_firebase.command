@@ -2,6 +2,8 @@
 set -e
 
 cd "$(dirname "$0")"
+PROJECT_ROOT="$(cd .. && pwd)"
+cd "$PROJECT_ROOT"
 
 echo "Preparation du deploy Agenda..."
 

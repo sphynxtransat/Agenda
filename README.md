@@ -4,6 +4,12 @@ Base de code partagee pour maintenir la synchro Mac et Android.
 
 ## Structure
 
+- `docs/`
+  Documentation projet, installation et auto-deploiement.
+- `scripts/`
+  Scripts de sync locale, watch et deploy.
+- `firebase.json`, `firestore.rules`, `.firebaserc*`
+  Configuration Firebase gardee a la racine pour la CLI.
 - `shared/web/`
   Point de verite pour le socle web commun et version a deployer pour Android.
 - `platforms/mac/`
@@ -28,7 +34,7 @@ Pourquoi :
 - Firebase Hosting permet d'installer la PWA sur Android sans serveur local ;
 - Mac et Android peuvent se synchroniser sur la meme base distante.
 
-Voir : `INSTALL_ANDROID_SANS_TERMINAL.md`
+Voir : `docs/INSTALL_ANDROID_SANS_TERMINAL.md`
 
 ## Securite Firestore
 
@@ -44,7 +50,7 @@ La voie recommandee est maintenant :
 - deploiement automatique via GitHub Actions ;
 - publication automatique sur Firebase Hosting a chaque push sur `main`.
 
-Voir : `GITHUB_AUTODEPLOY.md`
+Voir : `docs/GITHUB_AUTODEPLOY.md`
 
 ## Base importee
 
@@ -58,15 +64,15 @@ Pour propager automatiquement les changements faits ici :
 
 ```bash
 cd "/Users/Arcangelo/Desktop/AI/Création APP/VSC/chemin/racine/projet_partagé"
-chmod +x sync_shared.command watch_updates.command deploy_firebase.command
-./watch_updates.command
+chmod +x scripts/sync_shared.command scripts/watch_updates.command scripts/deploy_firebase.command
+./scripts/watch_updates.command
 ```
 
 Options utiles :
 
-- `AUTO_DEPLOY_FIREBASE=1 ./watch_updates.command`
+- `AUTO_DEPLOY_FIREBASE=1 ./scripts/watch_updates.command`
   pousse aussi chaque changement vers Firebase Hosting.
-- `SYNC_INSTALLED_MAC_APP=1 ./watch_updates.command`
+- `SYNC_INSTALLED_MAC_APP=1 ./scripts/watch_updates.command`
   recopie aussi les changements dans `/Applications/AgendaApp.app` si l'app est installee.
-- `AUTO_DEPLOY_FIREBASE=1 SYNC_INSTALLED_MAC_APP=1 ./watch_updates.command`
+- `AUTO_DEPLOY_FIREBASE=1 SYNC_INSTALLED_MAC_APP=1 ./scripts/watch_updates.command`
   mode le plus proche du "ça se met a jour tout seul" sur Android et Mac.

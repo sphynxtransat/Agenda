@@ -15,6 +15,7 @@ Publier automatiquement l'application des qu'un changement est pousse sur `main`
 
 - `.github/workflows/deploy-firebase.yml`
 - `.gitignore`
+- `scripts/deploy_firebase.command`
 
 ## Mise en place
 

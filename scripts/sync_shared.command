@@ -2,9 +2,9 @@
 set -e
 
 cd "$(dirname "$0")"
-
-ROOT="$(pwd)"
-WORKSPACE_ROOT="$(cd ../../.. && pwd)"
+SCRIPTS_DIR="$(pwd)"
+ROOT="$(cd .. && pwd)"
+WORKSPACE_ROOT="$(cd "$ROOT/../../.." && pwd)"
 SHARED_WEB="$ROOT/shared/web"
 EXTRACTED_ANDROID="$WORKSPACE_ROOT/extracted/android/AgendaAndroid"
 EXTRACTED_MAC_RES="$WORKSPACE_ROOT/extracted/mac/AgendaApp.app/Contents/Resources"
@@ -49,7 +49,7 @@ fi
 
 if [ "${AUTO_DEPLOY_FIREBASE:-0}" = "1" ]; then
   echo "Auto deploy Firebase..."
-  "$ROOT/deploy_firebase.command"
+  "$SCRIPTS_DIR/deploy_firebase.command"
 fi
 
 echo "Sync OK"
