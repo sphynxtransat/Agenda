@@ -1083,6 +1083,91 @@ function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g,ch=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
 }
 
+function normalizeAISuggestion(raw, source){
+  if(!raw||typeof raw!=='object')return null;
+  const type=raw.type||source||'event';
+  if(type==='create_task' || type==='task'){
+    if(!raw.title)return null;
+    return {
+      type:'task',
+      title:raw.title,
+      category:CATS[raw.category]?raw.category:'personnel',
+      priority:['haute','normale','basse'].includes(raw.priority)?raw.priority:'normale',
+      duration:parseInt(raw.duration)||30,
+      dueDate:raw.dueDate||selDate,
+      note:raw.note||'',
+      subtasks:Array.isArray(raw.subtasks)?raw.subtasks.filter(Boolean).slice(0,5):[]
+    };
+  }
+  if(!raw.title||!raw.startTime||!raw.endTime||!CATS[raw.category])return null;
+  return {
+    type:'event',
+    title:raw.title,
+    startTime:raw.startTime,
+    endTime:raw.endTime,
+    category:raw.category,
+    note:raw.note||'',
+    taskTitle:raw.taskTitle||'',
+    date:raw.date||selDate
+  };
+}
+
+function applyAISuggestion(s){
+  if(!s)return;
+  if(s.type==='task'){
+    tasks.push({
+      id:Date.now()+Math.floor(Math.random()*1000),
+      title:s.title,
+      category:s.category,
+      priority:s.priority,
+      duration:s.duration,
+      done:false,
+      dueDate:s.dueDate||null,
+      subtasks:(s.subtasks||[]).map((title,i)=>({id:Date.now()+i+1,title,done:false}))
+    });
+    saveWithSync('arc-tasks',tasks);
+    renderTasks();
+    return;
+  }
+  events.push({
+    id:Date.now()+Math.floor(Math.random()*1000),
+    title:s.title,
+    startTime:s.startTime,
+    endTime:s.endTime,
+    category:s.category,
+    notes:s.note||'',
+    date:s.date||selDate,
+    customColor:null,
+    recurrence:'none',
+    recurrenceDays:[],
+    recurrenceEnd:null,
+    reminder:null
+  });
+  saveWithSync('arc-events',events);
+  scheduleNotifications();
+  renderAll();
+}
+
+function applyChatAction(msgIndex, actionIndex){
+  const msg=chatHistory[msgIndex];
+  const action=msg?.actions?.[actionIndex];
+  if(!action)return;
+  applyAISuggestion(action);
+  chatHistory=chatHistory.map((m,i)=>i!==msgIndex?m:{...m,actions:(m.actions||[]).filter((_,idx)=>idx!==actionIndex)});
+  saveLS('arc-chat',chatHistory);
+  renderAI();
+}
+
+function renderSuggestionCard(s, sel, onClick){
+  const cat=CATS[s.category]||CATS.personnel;
+  const isTask=s.type==='task';
+  const meta=isTask
+    ?`${cat.label} · ${s.priority||'normale'}${s.dueDate?` · à faire ${s.dueDate}`:''}`
+    :`${s.startTime} – ${s.endTime} · ${cat.label}`;
+  const title=isTask?`Tâche · ${s.title}`:s.title;
+  return `<div class="ai-sugg${sel?' sel':''}" ${onClick?`onclick="${onClick}"`:''}><div class="ai-s-bar" style="background:${cat.color}"></div><div style="flex:1"><div class="ai-s-time">${escapeHtml(meta)}</div><div class="ai-s-title">${escapeHtml(title)}</div>${s.note?`<div class="ai-s-note">${escapeHtml(s.note)}</div>`:''}${isTask&&s.subtasks?.length?`<div style="font-size:10px;color:var(--text3);margin-top:4px">${s.subtasks.length} sous-tâche(s)</div>`:''}</div><div class="ai-s-ck" style="color:${sel?'var(--accent)':'var(--border)'}">${sel?'✓':'○'}</div></div>`;
+}
+
 function getAssistantContext(){
   const dayEvs=getEventsForDate(selDate).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const pending=tasks.filter(t=>!t.done);
@@ -1162,6 +1247,9 @@ Réponds UNIQUEMENT avec un objet JSON valide, rien d'autre :
   "watchouts":["vigilance 1","vigilance 2"],
   "schedule":[
     {"title":"...","startTime":"HH:MM","endTime":"HH:MM","category":"travail|musique|formation|lecture|meditation|personnel","note":"pourquoi ce créneau est utile","taskTitle":"nom de la tâche liée ou vide"}
+  ],
+  "todos":[
+    {"title":"...","category":"travail|musique|formation|lecture|meditation|personnel","priority":"haute|normale|basse","duration":30,"dueDate":"YYYY-MM-DD","note":"pourquoi cette tâche mérite d'être gardée","subtasks":["..."]}
   ]
 }`;
 }
@@ -1201,8 +1289,12 @@ async function planDay(){
     const m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error('Aucun JSON dans la réponse.');
     const parsed=JSON.parse(m[0]);
     const schedule=Array.isArray(parsed.schedule)?parsed.schedule:[];
-    const valid=schedule.filter(s=>s.title&&s.startTime&&s.endTime&&CATS[s.category]);
-    if(!valid.length)throw new Error('Aucun créneau valide généré.');
+    const todos=Array.isArray(parsed.todos)?parsed.todos:[];
+    const valid=[
+      ...schedule.map(s=>normalizeAISuggestion(s,'event')).filter(Boolean),
+      ...todos.map(t=>normalizeAISuggestion(t,'task')).filter(Boolean)
+    ];
+    if(!valid.length)throw new Error('Aucune suggestion valide générée.');
     aiPlanMeta={
       summary:parsed.summary||'Plan de journée généré',
       top3:Array.isArray(parsed.top3)?parsed.top3.filter(Boolean).slice(0,3):[],
@@ -1241,15 +1333,34 @@ Fenêtre de travail : ${workWindow}. Déjeuner : ${lunchWindow}.
 Énergie : ${energyStr}. Contexte : ${dayContextStr}.
 Événements du jour : ${dayEvs.length?dayEvs.map(e=>`${e.startTime}-${e.endTime} ${e.title}`).join(', '):'Aucun'}.
 Tâches en attente : ${pending.length?pending.map(t=>`${t.title} (${t.priority||'normale'})`).join(', '):'Aucune'}.
-Si l'utilisateur est flou, suggère la prochaine meilleure action au lieu de rester abstrait.`;
+Si l'utilisateur est flou, suggère la prochaine meilleure action au lieu de rester abstrait.
+Quand c'est pertinent, tu peux proposer des actions cliquables.
+Réponds de préférence avec un JSON strict :
+{
+  "reply":"réponse courte et utile",
+  "actions":[
+    {"type":"create_event","title":"...","startTime":"HH:MM","endTime":"HH:MM","category":"travail|musique|formation|lecture|meditation|personnel","date":"YYYY-MM-DD","note":"..."},
+    {"type":"create_task","title":"...","category":"travail|musique|formation|lecture|meditation|personnel","priority":"haute|normale|basse","duration":30,"dueDate":"YYYY-MM-DD","note":"...","subtasks":["..."]}
+  ]
+}
+Si aucune action n'est utile, mets un tableau vide.`;
     const msgs=[{role:'system',content:sysMsg},...chatHistory.slice(-10).map(m=>({role:m.role,content:m.content}))];
     const body=JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:msgs.filter(m=>m.role!=='system'),system:sysMsg});
     const data=await callAI(apiKey,body);
-    const reply=(data.content||[]).map(c=>c.text||'').join('');
-    chatHistory.push({role:'assistant',content:reply,ts:Date.now()});
+    const raw=(data.content||[]).map(c=>c.text||'').join('');
+    let reply=raw, actions=[];
+    const match=raw.match(/\{[\s\S]*\}/);
+    if(match){
+      try{
+        const parsed=JSON.parse(match[0]);
+        reply=parsed.reply||reply;
+        actions=Array.isArray(parsed.actions)?parsed.actions.map(a=>normalizeAISuggestion(a,a.type==='create_task'?'task':'event')).filter(Boolean):[];
+      }catch{}
+    }
+    chatHistory.push({role:'assistant',content:reply,actions,ts:Date.now()});
     saveLS('arc-chat',chatHistory);
   }catch(e){
-    chatHistory.push({role:'assistant',content:'⚠ Erreur : '+e.message,ts:Date.now()});
+    chatHistory.push({role:'assistant',content:'⚠ Erreur : '+e.message,actions:[],ts:Date.now()});
     saveLS('arc-chat',chatHistory);
   }
   chatLoading=false;renderAI();
@@ -1264,8 +1375,8 @@ function sendQuickChatMessage(text){
   sendChatMessage();
 }
 function addAISuggs(){
-  [...aiSel].forEach(i=>{const s=aiSuggs[i];events.push({id:Date.now()+i,title:s.title,startTime:s.startTime,endTime:s.endTime,category:s.category,notes:s.note||'',date:selDate,customColor:null,recurrence:'none',recurrenceDays:[],recurrenceEnd:null,reminder:null});});
-  saveWithSync('arc-events',events);aiStep='idle';aiSuggs=[];aiSel=new Set();scheduleNotifications();renderAll();
+  [...aiSel].forEach(i=>applyAISuggestion(aiSuggs[i]));
+  aiStep='idle';aiSuggs=[];aiSel=new Set();aiPlanMeta=null;renderAll();
 }
 function resetAI(){aiStep='idle';aiSuggs=[];aiSel=new Set();aiPlanMeta=null;renderAI();}
 
@@ -1291,7 +1402,9 @@ function renderAI(){
     if(chatHistory.length){
       html+=`<span class="chat-clear" onclick="clearChat()">Effacer l'historique</span>`;
       html+=`<div class="chat-messages" id="chatMessages">`;
-      chatHistory.forEach(m=>{html+=`<div class="chat-msg ${m.role}${m.content.startsWith('⚠')?'':''}">${m.content.replace(/\n/g,'<br>')}</div>`;});
+      chatHistory.forEach((m,msgIndex)=>{
+        html+=`<div class="chat-msg ${m.role}${m.content.startsWith('⚠')?'':''}">${escapeHtml(m.content).replace(/\n/g,'<br>')}${m.actions?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">${m.actions.map((a,actionIndex)=>`<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px"><div style="font-size:11px;font-weight:700;margin-bottom:4px">${a.type==='task'?'Suggestion to-do':'Suggestion agenda'}</div>${renderSuggestionCard(a,false,'') }<button class="ai-add-btn" style="margin-top:8px;height:28px" onclick="event.stopPropagation();applyChatAction(${msgIndex},${actionIndex})">Ajouter</button></div>`).join('')}</div>`:''}</div>`;
+      });
       if(chatLoading)html+=`<div class="chat-msg assistant thinking"><div class="spinner" style="width:16px;height:16px;margin:0"></div></div>`;
       html+=`</div>`;
     } else {
@@ -1337,9 +1450,9 @@ function renderAI(){
       if(aiPlanMeta.watchouts?.length)html+=`<div style="font-size:11px;color:var(--text2);margin:8px 0 4px">Vigilance</div>${aiPlanMeta.watchouts.map(t=>`<div class="ai-ctx-item">• ${escapeHtml(t)}</div>`).join('')}`;
       html+=`</div>`;
     }
-    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">${aiSuggs.length} créneaux proposés · Sélectionnez ceux à ajouter</div>`;
-    aiSuggs.forEach((s,i)=>{const cat=CATS[s.category]||CATS.personnel;const sel=aiSel.has(i);html+=`<div class="ai-sugg${sel?' sel':''}" onclick="toggleAISugg(${i})"><div class="ai-s-bar" style="background:${cat.color}"></div><div style="flex:1"><div class="ai-s-time">${s.startTime} – ${s.endTime} · ${cat.label}</div><div class="ai-s-title">${s.title}</div>${s.note?`<div class="ai-s-note">${s.note}</div>`:''}</div><div class="ai-s-ck" style="color:${sel?'var(--accent)':'var(--border)'}">${sel?'✓':'○'}</div></div>`;});
-    if(aiSel.size>0)html+=`<button class="ai-add-btn" onclick="addAISuggs()">Ajouter ${aiSel.size} créneau${aiSel.size>1?'x':''} au calendrier</button>`;
+    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">${aiSuggs.length} proposition${aiSuggs.length>1?'s':''} · Sélectionnez celles à ajouter</div>`;
+    aiSuggs.forEach((s,i)=>{html+=renderSuggestionCard(s,aiSel.has(i),`toggleAISugg(${i})`);});
+    if(aiSel.size>0)html+=`<button class="ai-add-btn" onclick="addAISuggs()">Ajouter ${aiSel.size} élément${aiSel.size>1?'s':''} à l'agenda / to-do</button>`;
     html+=`<div style="text-align:center;margin-top:8px"><button class="mbtn" style="font-size:11px;height:28px" onclick="resetAI()">↩ Recommencer</button></div>`;
     body.innerHTML=html;
   }
