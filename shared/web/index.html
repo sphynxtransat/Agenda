@@ -243,6 +243,8 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Ne
 .color-swatch.sel{border-color:var(--text);transform:scale(1.1)}
 /* Sync status */
 #syncStatus{font-size:10px;color:var(--text3);white-space:nowrap;min-width:80px;text-align:right;flex-shrink:0}
+#updateStatus{font-size:10px;color:#059669;white-space:nowrap;min-width:110px;text-align:right;flex-shrink:0;opacity:0;transform:translateY(-2px);transition:opacity .25s,transform .25s}
+#updateStatus.show{opacity:1;transform:translateY(0)}
 /* Mobile + perf */
 @media (hover:none) and (pointer:coarse){
   .ev-card:hover,.week-ev:hover,.task-del:hover,.ai-plan-btn:hover,.chat-send:hover,.mbtn:hover{transform:none;box-shadow:none;opacity:1}
@@ -335,6 +337,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Ne
       <button class="hbtn primary" onclick="openNewEvent()">+ Evt</button>
       <button class="hbtn" id="aiToggleBtn" onclick="toggleAI()">✦ IA</button>
       <button class="hbtn" onclick="toggleDark()" id="darkBtn" title="Mode sombre">🌙</button>
+      <span id="updateStatus">✓ Mise à jour appliquée</span>
       <span id="syncStatus">⟳ Sync...</span>
     </div>
     <!-- Day view -->
@@ -1501,12 +1504,21 @@ function renderAI(){
 
 function clearChat(){chatHistory=[];saveLS('arc-chat',chatHistory);renderAI();}
 
+function showUpdateApplied(){
+  const el=document.getElementById('updateStatus');
+  if(!el)return;
+  el.classList.add('show');
+  clearTimeout(showUpdateApplied._timer);
+  showUpdateApplied._timer=setTimeout(()=>el.classList.remove('show'),3500);
+}
+
 function setupAutoUpdate(){
   if(!('serviceWorker' in navigator))return;
   let refreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     if(refreshing)return;
     refreshing=true;
+    try{sessionStorage.setItem('agenda-update-applied','1');}catch{}
     window.location.reload();
   });
   navigator.serviceWorker.register('sw.js').then(reg=>{
@@ -1669,6 +1681,12 @@ if(profile.darkMode)applyDarkMode(true);
 if(profile.accentColor)applyAccent(profile.accentColor);
 document.getElementById('sortPrio').classList.add('on');
 requestNotifPermission();
+try{
+  if(sessionStorage.getItem('agenda-update-applied')==='1'){
+    sessionStorage.removeItem('agenda-update-applied');
+    setTimeout(showUpdateApplied,300);
+  }
+}catch{}
 renderAll();
 startSync();
 scheduleNotifications();
