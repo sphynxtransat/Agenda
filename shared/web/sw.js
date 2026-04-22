@@ -13,6 +13,10 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+self.addEventListener('message', e => {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('workers.dev') || e.request.url.includes('firestore.googleapis.com') || e.request.url.includes('anthropic.com')) return;

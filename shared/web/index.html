@@ -1501,6 +1501,37 @@ function renderAI(){
 
 function clearChat(){chatHistory=[];saveLS('arc-chat',chatHistory);renderAI();}
 
+function setupAutoUpdate(){
+  if(!('serviceWorker' in navigator))return;
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing)return;
+    refreshing=true;
+    window.location.reload();
+  });
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    const promptUpdate=worker=>{
+      if(!worker)return;
+      worker.postMessage('SKIP_WAITING');
+    };
+    const watchInstalling=worker=>{
+      if(!worker)return;
+      worker.addEventListener('statechange',()=>{
+        if(worker.state==='installed' && navigator.serviceWorker.controller){
+          promptUpdate(reg.waiting||worker);
+        }
+      });
+    };
+    if(reg.waiting)promptUpdate(reg.waiting);
+    if(reg.installing)watchInstalling(reg.installing);
+    reg.addEventListener('updatefound',()=>watchInstalling(reg.installing));
+    const checkForUpdates=()=>reg.update().catch(()=>{});
+    setInterval(checkForUpdates,120000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdates();});
+    window.addEventListener('online',checkForUpdates);
+  }).catch(()=>{});
+}
+
 // ── FIREBASE SYNC ───────────────────────────────────────────────────────────
 const FB_PROJECT = 'agenda-c6346';
 const FB_KEY     = 'AIzaSyB5aJU6a0R44DHf3E6VLT-cf5ndTCH_iWM';
@@ -1641,7 +1672,7 @@ requestNotifPermission();
 renderAll();
 startSync();
 scheduleNotifications();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+setupAutoUpdate();
 </script>
 </body>
 </html>
