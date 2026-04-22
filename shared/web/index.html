@@ -1176,18 +1176,18 @@ function setPlanMode(mode){
 
 const planModeOrder=['advance','hold','recover','catchup','clarify'];
 const planModeLabels={
-  advance:'Aller à l’essentiel',
-  hold:'Garder le rythme',
+  advance:'Priorités',
+  hold:'Journée chargée',
   recover:'Journée légère',
-  catchup:'Rattraper le retard',
-  clarify:'Faire le tri'
+  catchup:'Rattrapage',
+  clarify:'Organisation'
 };
 const planModeHints={
-  advance:'peu d’objectifs, uniquement l’utile',
-  hold:'une journée normale et stable',
+  advance:'ce qui compte le plus aujourd’hui',
+  hold:'beaucoup à gérer, sans se cramer',
   recover:'alléger pour préserver l’énergie',
-  catchup:'reprendre le fil sans surcharger',
-  clarify:'réduire le flou et choisir une direction'
+  catchup:'reprendre le fil du retard',
+  clarify:'mettre de l’ordre et clarifier'
 };
 
 function cyclePlanMode(){
@@ -1386,11 +1386,11 @@ function getAssistantContext(){
 function buildPrompt(){
   const {p,existStr,taskStr,chronoStr,energyStr,dayContextStr,workWindow,lunchWindow,loadBudget}=getAssistantContext();
   const modeDesc={
-    advance:'faire progresser l’essentiel sans surcharger la journée',
-    hold:'tenir une journée normale de façon stable et soutenable',
+    advance:'mettre les priorités en premier sans surcharger la journée',
+    hold:'gérer une journée chargée de façon stable et soutenable',
     recover:'protéger l’énergie et alléger franchement la journée',
     catchup:'rattraper le retard sans créer d’effondrement ensuite',
-    clarify:'réduire le flou et dégager une seule direction claire'
+    clarify:'mettre de l’ordre et dégager une direction claire'
   }[aiPlanMode]||'faire progresser l’essentiel sans surcharger la journée';
 
   return `Tu es un assistant de régulation humaine de la journée.
@@ -1619,7 +1619,7 @@ function renderAI(){
   // Plan tab
   if(aiStep==='idle'){
     footer.innerHTML=`<div class="ai-ft-row">
-      <button class="ai-mode-chip" onclick="cyclePlanMode()"><span>Mode</span>${escapeHtml(planModeLabels[aiPlanMode]||'Aller à l’essentiel')}</button>
+      <button class="ai-mode-chip" onclick="cyclePlanMode()"><span>Type</span>${escapeHtml(planModeLabels[aiPlanMode]||'Priorités')}</button>
       <button class="ai-plan-btn" style="flex:1;width:auto" onclick="planDay()">✦ Construire ma journée</button>
     </div>
     <div class="ai-ft-hint">${escapeHtml(planModeHints[aiPlanMode]||'un seul réglage, puis le plan fait le reste')}</div>`;
