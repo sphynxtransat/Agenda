@@ -14,7 +14,7 @@ if ! command -v firebase >/dev/null 2>&1; then
 fi
 
 if [ ! -f ".firebaserc" ]; then
-  echo "Copie .firebaserc.example vers .firebaserc puis renseigne ton project id Firebase."
+  echo "Creer .firebaserc puis renseigne ton project id Firebase."
   exit 1
 fi
 

@@ -24,9 +24,8 @@ Pourquoi :
 2. Activer :
    - Hosting
    - Firestore Database
-3. Copier `.firebaserc.example` en `.firebaserc`.
-4. Remplacer le project id dans `.firebaserc`.
-5. Deployer :
+3. Editer `.firebaserc` avec le project id.
+4. Deployer :
 
 ```bash
 cd AGENDA/projet_partagé
