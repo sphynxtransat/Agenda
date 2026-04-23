@@ -102,8 +102,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDe
     }
 
     func loadPreferredApp() {
-        didFallbackToLocal = false
-        webView.load(makeReloadRequest(url: remoteAppURL))
+        didFallbackToLocal = true
+        webView.load(makeReloadRequest(url: localAppURL))
     }
 
     func loadLocalFallback() {
