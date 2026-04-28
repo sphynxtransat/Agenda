@@ -326,16 +326,19 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 @media (max-width: 980px){
-  html,body{overflow:auto}
+  html,body{overflow:auto;height:auto;-webkit-overflow-scrolling:touch}
   .app{height:auto;min-height:100vh;display:block;overflow:visible}
-  .sidebar,.main,.ai-col{width:100%;border:none}
+  .sidebar,.main,.ai-col{width:100%;border:none;overflow:visible}
   .sidebar{border-bottom:1px solid var(--border)}
-  .main{min-height:60vh}
+  .main{min-height:0}
   .main-hd{position:sticky;top:0;z-index:30;padding:10px 12px;flex-wrap:wrap}
   .main-date-title{order:-1;flex-basis:100%;font-size:16px;margin-bottom:2px}
   .view-toggle{order:8}
   #syncStatus{margin-left:auto}
-  .day-view,.week-view,.task-wrap,.ai-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .day-view,.week-view{overflow:visible;height:auto}
+  .week-body{overflow:visible;height:auto}
+  .task-wrap,.ai-body{overflow:visible;height:auto}
+  .ai-inner{overflow:visible;height:auto}
   .dv-grid{padding-left:42px;padding-right:10px}
   .hour-lbl{left:-36px;width:30px}
   .week-header{grid-template-columns:42px repeat(7,minmax(64px,1fr))}
