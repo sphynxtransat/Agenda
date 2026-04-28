@@ -350,12 +350,6 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-/* Notes */
-.note-ta{width:100%;border:none;background:none;font-family:inherit;font-size:12.5px;color:var(--text);resize:none;outline:none;line-height:1.65;min-height:80px}
-.note-ta::placeholder{color:var(--text3)}
-.note-wrap-empty{padding:16px;border:1px dashed rgba(221,208,197,.9);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(250,242,231,.76));box-shadow:0 4px 14px rgba(78,56,33,.04)}
-.note-wrap-compact{padding-top:12px;border-top:1px solid var(--border2);margin-top:10px}
-.note-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -631,7 +625,6 @@ let renderQueued = false;
 let syncInterval = null;
 let syncPullInFlight = false;
 let pushSyncTimer = null;
-let notes = loadLS('arc-notes', {});
 
 const PROFILE_DEFAULTS = {
   chronotype:'middle',maxBlock:'90',buffer:'15',deepWork:'morning',
@@ -825,8 +818,12 @@ function renderTasks(){
   const list=document.getElementById('taskList');list.innerHTML='';
   const sorted=getSortedTasks();
   if(!sorted.length){
-    list.innerHTML=`<div class="note-wrap-empty"><textarea class="note-ta" id="noteArea" placeholder="Note du jour…" oninput="saveNote(this.value)" style="min-height:120px"></textarea></div>`;
-    document.getElementById(‘noteArea’).value=notes[selDate]||’’;
+    list.innerHTML=`<div class="task-empty">
+      <div class="task-empty-icon">✦</div>
+      <div class="task-empty-title">Espace léger</div>
+      <div class="task-empty-note">Aucune tâche pour l’instant. Ajoute une intention claire plutôt qu’une longue liste.</div>
+      <button class="mbtn p" style="height:30px;font-size:11px" onclick="showTaskForm()">Ajouter une tâche</button>
+    </div>`;
     return;
   }
   sorted.forEach(t=>{
@@ -868,10 +865,6 @@ function renderTasks(){
       </div>`;
     list.appendChild(div);
   });
-  const noteDiv=document.createElement('div');noteDiv.className='note-wrap-compact';
-  noteDiv.innerHTML=`<div class="note-lbl">Note</div><textarea class="note-ta" id="noteArea" placeholder="Note du jour…" oninput="saveNote(this.value)"></textarea>`;
-  list.appendChild(noteDiv);
-  document.getElementById('noteArea').value=notes[selDate]||'';
 }
 
 function toggleSubtasks(id,btn){
@@ -880,7 +873,6 @@ function toggleSubtasks(id,btn){
   el.style.display=shown?'none':'block';
   btn.textContent=shown?'▸':'▾';
 }
-function saveNote(val){notes[selDate]=val;saveLS('arc-notes',notes);}
 function toggleTask(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);saveWithSync('arc-tasks',tasks);renderTasks();}
 function deleteTask(id){tasks=tasks.filter(t=>t.id!==id);saveWithSync('arc-tasks',tasks);renderTasks();}
 function toggleSubtask(tid,sid){tasks=tasks.map(t=>t.id===tid?{...t,subtasks:(t.subtasks||[]).map(s=>s.id===sid?{...s,done:!s.done}:s)}:t);saveWithSync('arc-tasks',tasks);renderTasks();}
