@@ -1,5 +1,11 @@
 #!/bin/bash
 DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$DIR"
+
+echo "🔄 Mise à jour depuis GitHub..."
+git pull --quiet && echo "✓ À jour" || echo "⚠️  Pas de connexion, version locale utilisée"
+echo ""
+
 cd "$DIR/shared/web"
 
 # Kill any existing server on port 8080
