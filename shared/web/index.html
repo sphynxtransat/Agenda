@@ -466,8 +466,8 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
     <div class="frow">
       <div class="fg"><label class="flbl">Couleur perso</label>
         <div style="display:flex;gap:6px;align-items:center">
-          <input type="color" id="evCustomColor" style="width:36px;height:30px;border:1px solid var(--border);border-radius:5px;cursor:pointer;padding:2px;background:var(--bg)">
-          <button onclick="document.getElementById('evCustomColor').value='';document.getElementById('evColorAuto').textContent='Auto ✓'" style="font-size:11px;border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:var(--bg);cursor:pointer;color:var(--text2)" id="evColorAuto">Auto</button>
+          <input type="color" id="evCustomColor" style="width:36px;height:30px;border:1px solid var(--border);border-radius:5px;cursor:pointer;padding:2px;background:var(--bg)" oninput="document.getElementById('evColorAuto').textContent='Effacer'">
+          <button onclick="document.getElementById('evCustomColor').value='';document.getElementById('evColorAuto').textContent='Auto'" style="font-size:11px;border:1px solid var(--border);border-radius:5px;padding:4px 8px;background:var(--bg);cursor:pointer;color:var(--text2)" id="evColorAuto">Auto</button>
         </div>
       </div>
       <div class="fg"><label class="flbl">Rappel</label>
@@ -550,11 +550,25 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
     </div>
     <div class="profile-section">
       <div class="profile-section-title">Style de travail</div>
-      <div class="radio-group" id="pMaxBlock">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Bloc max de concentration</div>
+      <div class="radio-group" id="pMaxBlock" style="margin-bottom:8px">
         <div class="radio-opt" data-v="45" onclick="setPref('maxBlock','45',this)">45 min</div>
         <div class="radio-opt" data-v="60" onclick="setPref('maxBlock','60',this)">1h</div>
         <div class="radio-opt" data-v="90" onclick="setPref('maxBlock','90',this)">1h30</div>
         <div class="radio-opt" data-v="120" onclick="setPref('maxBlock','120',this)">2h</div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Buffer entre tâches</div>
+      <div class="radio-group" id="pBuffer" style="margin-bottom:8px">
+        <div class="radio-opt" data-v="5" onclick="setPref('buffer','5',this)">5 min</div>
+        <div class="radio-opt" data-v="10" onclick="setPref('buffer','10',this)">10 min</div>
+        <div class="radio-opt" data-v="15" onclick="setPref('buffer','15',this)">15 min</div>
+        <div class="radio-opt" data-v="30" onclick="setPref('buffer','30',this)">30 min</div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Créneau de deep work</div>
+      <div class="radio-group" id="pDeepWork">
+        <div class="radio-opt" data-v="morning" onclick="setPref('deepWork','morning',this)">Matin</div>
+        <div class="radio-opt" data-v="afternoon" onclick="setPref('deepWork','afternoon',this)">Après-midi</div>
+        <div class="radio-opt" data-v="both" onclick="setPref('deepWork','both',this)">Les deux</div>
       </div>
     </div>
     <div class="profile-section">
@@ -619,7 +633,6 @@ let chatHistory = loadLS('arc-chat', []);
 let chatLoading = false;
 let editingEventId = null;
 let mcViewDate = new Date();
-let darkMode = false;
 let notifScheduled = {};
 let renderQueued = false;
 let syncInterval = null;
@@ -687,21 +700,6 @@ function saveWithSync(k,v){
   }
 }
 
-// ── Dark mode ─────────────────────────────────────────────────────────────────
-function applyDarkMode(val){
-  darkMode=false;
-  document.documentElement.setAttribute('data-theme','light');
-}
-function toggleDark(){
-  applyDarkMode(false);
-  profile.darkMode=false;
-  saveLS('arc-profile',profile);
-}
-function toggleDarkFromProfile(){
-  applyDarkMode(false);
-  profile.darkMode=false;
-  saveLS('arc-profile',profile);
-}
 
 // ── Accent color ──────────────────────────────────────────────────────────────
 function setAccent(hex,el){
@@ -880,9 +878,16 @@ function deleteSubtask(tid,sid){tasks=tasks.map(t=>t.id===tid?{...t,subtasks:(t.
 function addSubtask(tid){
   const inp=document.getElementById('stin_'+tid);if(!inp||!inp.value.trim())return;
   tasks=tasks.map(t=>t.id===tid?{...t,subtasks:[...(t.subtasks||[]),{id:Date.now(),title:inp.value.trim(),done:false}]}:t);
-  saveWithSync('arc-tasks',tasks);renderTasks();
-  // re-expand
-  setTimeout(()=>{const el=document.getElementById('sub_'+tid);if(el)el.style.display='block';},50);
+  saveWithSync('arc-tasks',tasks);
+  const openIds=new Set([...document.querySelectorAll('.subtask-list')].filter(el=>el.style.display!=='none').map(el=>el.id.replace('sub_','')));
+  openIds.add(String(tid));
+  renderTasks();
+  openIds.forEach(id=>{
+    const el=document.getElementById('sub_'+id);if(!el)return;
+    el.style.display='block';
+    const btn=el.previousElementSibling?.querySelector('.expand-btn');
+    if(btn)btn.textContent='▾';
+  });
 }
 function showTaskForm(){document.getElementById('taskForm').style.display='block';document.getElementById('taskInput').focus();}
 function hideTaskForm(){document.getElementById('taskForm').style.display='none';document.getElementById('taskInput').value='';}
@@ -1660,7 +1665,7 @@ function renderAI(){
   }
 }
 
-function clearChat(){chatHistory=[];saveLS('arc-chat',chatHistory);renderAI();}
+function clearChat(){chatLoading=false;chatHistory=[];saveLS('arc-chat',chatHistory);renderAI();}
 
 function showUpdateApplied(){
   const el=document.getElementById('updateStatus');
@@ -1837,7 +1842,6 @@ mcViewDate=parseDate(selDate);mcViewDate.setDate(1);
 // Apply saved profile settings
 profile.darkMode=false;
 saveLS('arc-profile',profile);
-applyDarkMode(false);
 if(profile.accentColor)applyAccent(profile.accentColor);
 document.getElementById('sortPrio').classList.add('on');
 requestNotifPermission();
