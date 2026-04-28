@@ -329,6 +329,8 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
 /* Mobile + perf */
 @media (hover:none) and (pointer:coarse){
   .ev-card:hover,.week-ev:hover,.task-del:hover,.ai-plan-btn:hover,.chat-send:hover,.mbtn:hover{transform:none;box-shadow:none;opacity:1}
+  .ev-card,.week-ev,.ai-col,.main-hd,.overlay,.ai-inner{backdrop-filter:none}
+  .task-wrap,.day-view,.week-view,.ai-body{-webkit-overflow-scrolling:touch;will-change:scroll-position}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
