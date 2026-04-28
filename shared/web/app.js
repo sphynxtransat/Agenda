@@ -147,7 +147,7 @@ function renderNote(){
   if(!el||document.activeElement===el)return;
   el.value=notes[selDate]||'';
 }
-function saveNote(val){notes[selDate]=val;saveLS('arc-notes',notes);}
+function saveNote(val){notes[selDate]=val;saveLS('arc-notes',notes);syncPush();}
 function renderNow(){
   renderSidebarHead();
   renderWeekStrip();
@@ -1176,6 +1176,7 @@ async function syncPush() {
     const payload = {
       events: events,
       tasks: tasks,
+      notes: notes,
       updatedAt: Date.now()
     };
     await fbWrite('agendas', FB_USER, payload);
@@ -1196,8 +1197,10 @@ async function syncPull() {
   if (remoteTime <= localTime) return false;
   events = data.events || events;
   tasks  = data.tasks  || tasks;
+  notes  = data.notes  || notes;
   saveLS('arc-events', events);
   saveLS('arc-tasks',  tasks);
+  saveLS('arc-notes',  notes);
   localStorage.setItem('arc-sync-time', String(remoteTime));
   return true;
   } finally {
