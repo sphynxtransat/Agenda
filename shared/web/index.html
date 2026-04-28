@@ -277,6 +277,11 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
 .task-empty-icon{font-size:24px;margin-bottom:8px}
 .task-empty-title{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
 .task-empty-note{font-size:12px;line-height:1.6;margin-bottom:10px}
+/* Note */
+.note-section{padding:12px 14px 16px;border-top:1px solid var(--border2)}
+.note-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:6px}
+.note-ta{width:100%;border:none;background:none;font-family:inherit;font-size:12.5px;color:var(--text);resize:none;outline:none;line-height:1.65;min-height:64px}
+.note-ta::placeholder{color:var(--text3)}
 /* Chat */
 .chat-messages{display:flex;flex-direction:column;gap:10px;padding:4px 0}
 .chat-msg{max-width:88%;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.55;word-break:break-word}
@@ -329,24 +334,19 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 @media (max-width: 980px){
-  html,body{overflow:auto;height:auto}
+  html,body{overflow:auto}
   .app{height:auto;min-height:100vh;display:block;overflow:visible}
-  .sidebar,.main,.ai-col{width:100%;border:none;overflow:visible}
+  .sidebar,.main,.ai-col{width:100%;border:none}
   .sidebar{border-bottom:1px solid var(--border)}
-  .task-wrap{flex:none;overflow:visible;max-height:none}
-  .main{overflow:visible}
-  .day-view{flex:none;overflow:visible;height:auto}
-  .week-view.active{flex:none;overflow:visible;height:auto}
-  .week-body{overflow:visible;height:auto}
-  .ai-col{overflow:visible}
-  .ai-body{flex:none;overflow:visible}
+  .main{min-height:60vh}
   .main-hd{position:sticky;top:0;z-index:30;padding:10px 12px;flex-wrap:wrap}
   .main-date-title{order:-1;flex-basis:100%;font-size:16px;margin-bottom:2px}
   .view-toggle{order:8}
   #syncStatus{margin-left:auto}
+  .day-view,.week-view,.task-wrap,.ai-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .dv-grid{padding-left:42px;padding-right:10px}
   .hour-lbl{left:-36px;width:30px}
-  .week-header{grid-template-columns:42px repeat(7,minmax(64px,1fr));position:sticky;top:42px;z-index:20}
+  .week-header{grid-template-columns:42px repeat(7,minmax(64px,1fr))}
   .week-body{grid-template-columns:42px repeat(7,minmax(64px,1fr))}
   .modal{width:min(100vw - 16px, 440px);max-width:min(100vw - 16px, 440px);padding:18px}
   .profile-grid{grid-template-columns:1fr}
@@ -355,11 +355,6 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-/* Note */
-.note-section{flex-shrink:0;border-top:1px solid var(--border2);padding:10px 14px 14px}
-.note-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:5px}
-.note-ta{width:100%;border:none;background:none;font-family:inherit;font-size:12.5px;color:var(--text);resize:none;outline:none;line-height:1.65;min-height:72px;max-height:140px}
-.note-ta::placeholder{color:var(--text3)}
 </style>
 </head>
 <body>
@@ -401,15 +396,15 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
         </div>
         <input type="date" id="taskDueDate" style="margin-top:4px" placeholder="Échéance (optionnel)">
         <div class="task-form-btns">
-          <button class="p" id="taskSaveBtn" onclick="addTask()">Ajouter</button>
+          <button class="p" onclick="addTask()">Ajouter</button>
           <button onclick="hideTaskForm()">✕</button>
         </div>
       </div>
       <div id="taskList"></div>
-    </div>
-    <div class="note-section">
-      <div class="note-lbl">Note du jour</div>
-      <textarea class="note-ta" id="noteArea" placeholder="Quelque chose à retenir…" oninput="saveNote(this.value)"></textarea>
+      <div class="note-section">
+        <div class="note-lbl">Note</div>
+        <textarea class="note-ta" id="noteArea" placeholder="Quelque chose à retenir…" oninput="saveNote(this.value)"></textarea>
+      </div>
     </div>
   </div>
 
@@ -521,7 +516,6 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
       </div>
     </div>
     <div class="fg"><label class="flbl">Notes</label><input class="finput" id="evNotes" placeholder="Remarques…"></div>
-    <div id="evErr" style="display:none;color:#c0392b;font-size:12px;margin-top:4px"></div>
     <div class="mact">
       <button class="mbtn d" id="evDelBtn" onclick="deleteEvent()" style="display:none">Supprimer</button>
       <button class="mbtn" onclick="document.getElementById('evOverlay').style.display='none'">Annuler</button>
@@ -645,21 +639,20 @@ let aiSel = new Set();
 let aiPlanMeta = null;
 let aiPlanMode = 'advance';
 let chatHistory = loadLS('arc-chat', []);
+let notes = loadLS('arc-notes', {});
 let chatLoading = false;
 let editingEventId = null;
-let editingTaskId = null;
 let mcViewDate = new Date();
 let notifScheduled = {};
 let renderQueued = false;
 let syncInterval = null;
 let syncPullInFlight = false;
 let pushSyncTimer = null;
-let notes = loadLS('arc-notes', {});
 
 const PROFILE_DEFAULTS = {
   chronotype:'middle',maxBlock:'90',buffer:'15',deepWork:'morning',
   workStart:'08:00',workEnd:'19:00',lunchStart:'12:30',lunchEnd:'13:30',
-  dayContext:'normal',energy:'medium',apiKey:'',
+  exercise:'none',dayContext:'normal',energy:'medium',apiKey:'',
   darkMode:false,accentColor:'0891b2'
 };
 let profile = loadLS('arc-profile', PROFILE_DEFAULTS);
@@ -720,12 +713,8 @@ function saveWithSync(k,v){
 
 // ── Accent color ──────────────────────────────────────────────────────────────
 function setAccent(hex,el){
-  const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
-  const dr=Math.round(r*.82),dg=Math.round(g*.82),db=Math.round(b*.82);
-  const strongHex=[dr,dg,db].map(v=>v.toString(16).padStart(2,'0')).join('');
   document.documentElement.style.setProperty('--accent','#'+hex);
-  document.documentElement.style.setProperty('--accent-strong','#'+strongHex);
-  document.documentElement.style.setProperty('--accent-bg','rgba('+r+','+g+','+b+',.1)');
+  document.documentElement.style.setProperty('--accent-bg','rgba('+parseInt(hex.slice(0,2),16)+','+parseInt(hex.slice(2,4),16)+','+parseInt(hex.slice(4,6),16)+',.1)');
   profile.accentColor=hex;
   document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.c===hex));
 }
@@ -762,6 +751,12 @@ function scheduleNotifications(){
 }
 
 // ── Render all ────────────────────────────────────────────────────────────────
+function renderNote(){
+  const el=document.getElementById('noteArea');
+  if(!el||document.activeElement===el)return;
+  el.value=notes[selDate]||'';
+}
+function saveNote(val){notes[selDate]=val;saveLS('arc-notes',notes);}
 function renderNow(){
   renderSidebarHead();
   renderWeekStrip();
@@ -772,12 +767,6 @@ function renderNow(){
   else renderWeekView();
   renderAI();
   updateAIToggle();
-}
-
-function renderNote(){
-  const el=document.getElementById('noteArea');
-  if(!el||document.activeElement===el)return;
-  el.value=notes[selDate]||'';
 }
 function renderAll(){
   if(renderQueued)return;
@@ -843,15 +832,7 @@ function setTaskSort(by){
 function renderTasks(){
   const list=document.getElementById('taskList');list.innerHTML='';
   const sorted=getSortedTasks();
-  if(!sorted.length){
-    list.innerHTML=`<div class="task-empty">
-      <div class="task-empty-icon">✦</div>
-      <div class="task-empty-title">Espace léger</div>
-      <div class="task-empty-note">Aucune tâche pour l’instant. Ajoute une intention claire plutôt qu’une longue liste.</div>
-      <button class="mbtn p" style="height:30px;font-size:11px" onclick="showTaskForm()">Ajouter une tâche</button>
-    </div>`;
-    return;
-  }
+  if(!sorted.length){return;}
   sorted.forEach(t=>{
     const cat=CATS[t.category]||CATS.personnel;
     const pClass={haute:'prio-haute',normale:'prio-normale',basse:'prio-basse'}[t.priority||'normale'];
@@ -875,7 +856,6 @@ function renderTasks(){
           </div>
         </div>
         <button class="expand-btn" onclick="toggleSubtasks(${t.id},this)" title="Sous-tâches">▸</button>
-        <button class="task-del" onclick="editTask(${t.id})" title="Modifier" style="font-size:11px">✎</button>
         <button class="task-del" onclick="deleteTask(${t.id})">×</button>
       </div>
       <div class="subtask-list" id="sub_${t.id}" style="display:none">
@@ -918,47 +898,15 @@ function addSubtask(tid){
     if(btn)btn.textContent='▾';
   });
 }
-function showTaskForm(){
-  editingTaskId=null;
-  document.getElementById('taskInput').value='';
-  document.getElementById('taskCat').value='travail';
-  document.getElementById('taskPrio').value='normale';
-  document.getElementById('taskDuration').value='60';
-  document.getElementById('taskDueDate').value='';
-  document.getElementById('taskSaveBtn').textContent='Ajouter';
-  document.getElementById('taskForm').style.display='block';
-  document.getElementById('taskInput').focus();
-}
-function editTask(id){
-  const t=tasks.find(x=>x.id===id);if(!t)return;
-  editingTaskId=id;
-  document.getElementById('taskInput').value=t.title;
-  document.getElementById('taskCat').value=t.category||'travail';
-  document.getElementById('taskPrio').value=t.priority||'normale';
-  document.getElementById('taskDuration').value=String(t.duration||60);
-  document.getElementById('taskDueDate').value=t.dueDate||'';
-  document.getElementById('taskSaveBtn').textContent='Modifier';
-  document.getElementById('taskForm').style.display='block';
-  document.getElementById('taskInput').focus();
-}
-function hideTaskForm(){
-  editingTaskId=null;
-  document.getElementById('taskForm').style.display='none';
-  document.getElementById('taskInput').value='';
-  document.getElementById('taskSaveBtn').textContent='Ajouter';
-}
-function saveNote(val){notes[selDate]=val;saveLS('arc-notes',notes);syncPush();}
+function showTaskForm(){document.getElementById('taskForm').style.display='block';document.getElementById('taskInput').focus();}
+function hideTaskForm(){document.getElementById('taskForm').style.display='none';document.getElementById('taskInput').value='';}
 function taskInputKey(e){if(e.key==='Enter')addTask();if(e.key==='Escape')hideTaskForm();}
 function addTask(){
   const title=document.getElementById('taskInput').value.trim();if(!title)return;
   const dueVal=document.getElementById('taskDueDate').value;
-  const fields={title,category:document.getElementById('taskCat').value,priority:document.getElementById('taskPrio').value,duration:parseInt(document.getElementById('taskDuration').value),dueDate:dueVal||null};
-  if(editingTaskId){
-    tasks=tasks.map(t=>t.id===editingTaskId?{...t,...fields}:t);
-  } else {
-    tasks.push({id:Date.now(),...fields,done:false,subtasks:[]});
-  }
+  tasks.push({id:Date.now(),title,category:document.getElementById('taskCat').value,priority:document.getElementById('taskPrio').value,duration:parseInt(document.getElementById('taskDuration').value),done:false,dueDate:dueVal||null,subtasks:[]});
   saveWithSync('arc-tasks',tasks);renderTasks();hideTaskForm();
+  document.getElementById('taskDueDate').value='';
 }
 
 // ── Day view ──────────────────────────────────────────────────────────────────
@@ -1147,9 +1095,7 @@ function saveEvent(){
   const title=document.getElementById('evTitle').value.trim();if(!title)return;
   const startTime=document.getElementById('evStart').value;
   const endTime=document.getElementById('evEnd').value;
-  const evErrEl=document.getElementById(‘evErr’);
-  if(!startTime||!endTime||toMins(endTime)<=toMins(startTime)){if(evErrEl){evErrEl.textContent=’L’heure de fin doit être après l’heure de début.’;evErrEl.style.display=’block’;}return;}
-  if(evErrEl)evErrEl.style.display=’none’;
+  if(!startTime||!endTime||toMins(endTime)<=toMins(startTime)){window.alert('L’heure de fin doit être après l’heure de début.');return;}
   const colorInput=document.getElementById('evCustomColor').value;
   const autoBtn=document.getElementById('evColorAuto');
   const customColor=(autoBtn.textContent==='Auto')?null:colorInput;
@@ -1183,7 +1129,7 @@ function deleteEvent(){
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 function openProfile(){
-  ['chronotype','deepWork','maxBlock','buffer','dayContext','energy'].forEach(k=>{
+  ['chronotype','deepWork','maxBlock','buffer','exercise','dayContext','energy'].forEach(k=>{
     const id='p'+k.charAt(0).toUpperCase()+k.slice(1);
     const el=document.getElementById(id);if(!el)return;
     el.querySelectorAll('.radio-opt').forEach(o=>o.classList.toggle('sel',o.dataset.v===profile[k]));
@@ -1195,10 +1141,6 @@ function openProfile(){
   document.getElementById('pApiKey').value=profile.apiKey||'';
   document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.c===(profile.accentColor||'0891b2')));
   document.getElementById('profileOverlay').style.display='flex';
-}
-function openProfileForApiKey(){
-  openProfile();
-  setTimeout(()=>{const el=document.getElementById('pApiKey');if(el){el.focus();el.scrollIntoView({behavior:'smooth'});}},120);
 }
 function setPref(k,v,el){el.closest('.radio-group').querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');profile[k]=v;}
 function saveProfile(){
@@ -1523,7 +1465,11 @@ async function callAI(apiKey, body){
 
 async function planDay(){
   let apiKey=profile.apiKey||'';
-  if(!apiKey){openProfileForApiKey();return;}
+  if(!apiKey){
+    const k=window.prompt('Clé API aiprimetech.io\n\nCopiez votre clé depuis aiprimetech.io/keys');
+    if(!k||!k.trim())return;
+    apiKey=k.trim();profile.apiKey=apiKey;saveLS('arc-profile',profile);
+  }
   aiStep='loading';aiSuggs=[];aiSel=new Set();renderAI();
   try{
     const body=JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:buildPrompt()}]});
@@ -1555,7 +1501,11 @@ async function sendChatMessage(){
   const input=document.getElementById('chatInput');
   if(!input||!input.value.trim()||chatLoading)return;
   let apiKey=profile.apiKey||'';
-  if(!apiKey){openProfileForApiKey();return;}
+  if(!apiKey){
+    const k=window.prompt('Clé API aiprimetech.io\n\nCopiez votre clé depuis aiprimetech.io/keys');
+    if(!k||!k.trim())return;
+    apiKey=k.trim();profile.apiKey=apiKey;saveLS('arc-profile',profile);
+  }
   const msg=input.value.trim();input.value='';
   chatHistory.push({role:'user',content:msg,ts:Date.now()});
   saveLS('arc-chat',chatHistory);
@@ -1598,11 +1548,9 @@ Si aucune action n'est utile, mets un tableau vide.`;
       }catch{}
     }
     chatHistory.push({role:'assistant',content:reply,actions,ts:Date.now()});
-    if(chatHistory.length>40)chatHistory=chatHistory.slice(-40);
     saveLS('arc-chat',chatHistory);
   }catch(e){
     chatHistory.push({role:'assistant',content:'⚠ Erreur : '+e.message,actions:[],ts:Date.now()});
-    if(chatHistory.length>40)chatHistory=chatHistory.slice(-40);
     saveLS('arc-chat',chatHistory);
   }
   chatLoading=false;renderAI();
@@ -1776,26 +1724,6 @@ const FB_USER    = 'user-arcange'; // shared user ID - single user app
 
 let syncUnsubscribe = null; // for cleanup
 
-// Anonymous auth — gets a Firebase ID token so Firestore rules can require request.auth != null
-let fbIdToken = null;
-async function fbEnsureAuth() {
-  if (fbIdToken) return fbIdToken;
-  try {
-    const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + FB_KEY, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({returnSecureToken: true})
-    });
-    const data = await res.json();
-    fbIdToken = data.idToken || null;
-    // Tokens expire in 1h — clear before expiry so next call refreshes
-    if (fbIdToken) setTimeout(() => { fbIdToken = null; }, 55 * 60 * 1000);
-  } catch(e) {
-    console.warn('Firebase auth error:', e.message);
-  }
-  return fbIdToken;
-}
-
 // Convert JS value to Firestore field value format
 function toFB(val) {
   if (val === null || val === undefined) return {nullValue: null};
@@ -1823,12 +1751,13 @@ function fromFB(fv) {
 // Write data to Firestore
 async function fbWrite(collection, docId, data) {
   const fields = Object.fromEntries(Object.entries(data).map(([k,v]) => [k, toFB(v)]));
-  const token = await fbEnsureAuth();
   const url = FB_BASE + '/' + collection + '/' + docId + '?key=' + FB_KEY;
-  const headers = {'Content-Type': 'application/json'};
-  if (token) headers['Authorization'] = 'Bearer ' + token;
   try {
-    await fetch(url, {method: 'PATCH', headers, body: JSON.stringify({fields})});
+    await fetch(url, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({fields})
+    });
   } catch(e) {
     console.warn('Firebase write error:', e.message);
   }
@@ -1836,12 +1765,9 @@ async function fbWrite(collection, docId, data) {
 
 // Read data from Firestore
 async function fbRead(collection, docId) {
-  const token = await fbEnsureAuth();
   const url = FB_BASE + '/' + collection + '/' + docId + '?key=' + FB_KEY;
-  const headers = {};
-  if (token) headers['Authorization'] = 'Bearer ' + token;
   try {
-    const res = await fetch(url, {headers});
+    const res = await fetch(url);
     if (!res.ok) return null;
     const doc = await res.json();
     if (!doc.fields) return null;
@@ -1859,7 +1785,6 @@ async function syncPush() {
     const payload = {
       events: events,
       tasks: tasks,
-      notes: notes,
       updatedAt: Date.now()
     };
     await fbWrite('agendas', FB_USER, payload);
@@ -1880,10 +1805,8 @@ async function syncPull() {
   if (remoteTime <= localTime) return false;
   events = data.events || events;
   tasks  = data.tasks  || tasks;
-  notes  = data.notes  || notes;
   saveLS('arc-events', events);
   saveLS('arc-tasks',  tasks);
-  saveLS('arc-notes',  notes);
   localStorage.setItem('arc-sync-time', String(remoteTime));
   return true;
   } finally {
