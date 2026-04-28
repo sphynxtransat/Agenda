@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_response.filePath // .tool_input.file_path // empty' 2>/dev/null); echo \"$f\" | grep -q 'shared/web/' && echo '{\"systemMessage\":\"Rappel : tester localement avant de push → python3 -m http.server 8080 dans shared/web/\"}' || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
