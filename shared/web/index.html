@@ -38,10 +38,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.04;b
 .sidebar{width:260px;flex-shrink:0;border-right:1px solid rgba(217,209,197,.7);display:flex;flex-direction:column;background:
 linear-gradient(180deg,rgba(252,250,246,.98),rgba(245,241,235,.96));overflow:hidden;position:relative}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.ai-col{width:310px;flex-shrink:0;border-left:1px solid rgba(217,209,197,.68);display:flex;flex-direction:column;background:
-linear-gradient(180deg,rgba(251,249,244,.96),rgba(245,241,236,.98));
-overflow:hidden;transition:width .25s,opacity .2s;position:relative;backdrop-filter:blur(16px)}
-.ai-col.closed{width:0;opacity:0;border:none;pointer-events:none}
+.ai-col{position:fixed;right:0;top:0;bottom:0;width:310px;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(251,249,244,.99),rgba(245,241,236,.99));overflow:hidden;transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .2s;box-shadow:-6px 0 32px rgba(0,0,0,.1);z-index:50;border-left:1px solid rgba(217,209,197,.68);backdrop-filter:blur(16px)}
+.ai-col.closed{transform:translateX(100%);opacity:0;pointer-events:none;box-shadow:none}
 /* Sidebar */
 .sb-head{padding:22px 18px 12px}
 .sb-date-big{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",serif;font-size:22px;font-weight:700;letter-spacing:-.03em;line-height:1.08}
@@ -362,7 +360,7 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
     </div>
     <div class="week-strip" id="weekStrip"></div>
     <div class="sb-divider"></div>
-    <div class="mini-cal">
+    <div class="mini-cal" style="display:none">
       <div class="mc-head">
         <span class="mc-title" id="mcTitle"></span>
         <div class="mc-nav">
@@ -372,13 +370,10 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
       </div>
       <div class="mc-grid" id="mcGrid"></div>
     </div>
-    <div class="sb-divider"></div>
     <div class="task-wrap">
       <div class="task-hd">
         <span class="task-hd-title">Tâches</span>
         <div class="task-hd-right">
-          <button class="task-sort-btn" id="sortPrio" onclick="setTaskSort('priority')">Priorité</button>
-          <button class="task-sort-btn" id="sortDue" onclick="setTaskSort('dueDate')">Échéance</button>
           <button class="task-add-btn" onclick="showTaskForm()">+</button>
         </div>
       </div>
@@ -403,17 +398,16 @@ linear-gradient(155deg,rgba(255,255,255,.8),rgba(248,243,236,.68));flex-shrink:0
   <div class="main">
     <div class="main-hd">
       <button class="hbtn hbtn-nav" onclick="shiftDay(-1)">&#8249;</button>
-      <button class="hbtn" onclick="goToday()" style="font-size:11px">Auj.</button>
       <button class="hbtn hbtn-nav" onclick="shiftDay(1)">&#8250;</button>
       <div class="main-date-title" id="mainDateTitle"></div>
       <div class="view-toggle">
         <button id="viewBtnDay" class="on" onclick="setView('day')">Jour</button>
-        <button id="viewBtnWeek" onclick="setView('week')">Semaine</button>
+        <button id="viewBtnWeek" onclick="setView('week')">Sem.</button>
       </div>
-      <button class="hbtn primary" onclick="openNewEvent()">+ Evt</button>
-      <button class="hbtn" id="aiToggleBtn" onclick="toggleAI()">✦ IA</button>
+      <button class="hbtn primary" onclick="openNewEvent()">+</button>
+      <button class="hbtn" id="aiToggleBtn" onclick="toggleAI()">✦</button>
       <span id="updateStatus">✓ Mise à jour appliquée</span>
-      <span id="syncStatus">⟳ Sync...</span>
+      <span id="syncStatus" style="display:none"></span>
     </div>
     <!-- Day view -->
     <div class="day-view" id="dayView">
